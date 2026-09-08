@@ -414,6 +414,192 @@
     50%      { transform: translateY(-4px); opacity: 1; }
   }
 
+  /* ══ social surfaces ═══════════════════════════════════════ */
+
+  /* your own echo, and echoes you have held */
+  .card.mine { border-style: dashed; }
+
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 3px 8px 2.5px;
+    border: 1px solid currentColor;
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+
+  /* a reply is smaller than what it answers, and never sits under it */
+  .card.reply { border-radius: 20px; padding: 18px 20px 16px; }
+  .card.reply::before { border-radius: 20px 20px 0 0; }
+  .card.reply .echo-text { font-size: 19px; }
+
+  /* the tether: both cards share a depth, so a flat line is correct in 3D */
+  .tether {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: 1px;
+    transform-origin: 0 50%;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .tether::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: -2px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* toast: what your engagement actually cost */
+  .toast {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--hair);
+    background: rgba(8, 8, 12, 0.72);
+    -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(18px);
+    border-radius: 999px;
+    padding: 10px 18px;
+    animation: toast-in 420ms cubic-bezier(0.16, 1, 0.3, 1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ══ sheets: compose, answer, ledger ═══════════════════════ */
+
+  .scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(3, 3, 5, 0.72);
+    -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+    animation: fade-in 300ms ease;
+  }
+
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+  .sheet {
+    width: 100%;
+    max-width: 470px;
+    max-height: 100%;
+    overflow-y: auto;
+    border: 1px solid var(--hair-lit);
+    background: rgba(255, 255, 255, 0.035);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+            backdrop-filter: blur(40px) saturate(150%);
+    border-radius: 26px;
+    padding: 26px 26px 22px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
+    -webkit-user-select: text;
+            user-select: text;
+    animation: sheet-in 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes sheet-in {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .sheet-title {
+    font-family: 'Familjen Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 25px;
+    letter-spacing: -0.018em;
+    margin: 8px 0 0;
+  }
+
+  .tx, .ta {
+    width: 100%;
+    font-family: 'Familjen Grotesk', sans-serif;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--hair);
+    border-radius: 14px;
+    padding: 13px 15px;
+    outline: none;
+    -webkit-user-select: text;
+            user-select: text;
+    transition: border-color 260ms ease, background-color 260ms ease;
+  }
+
+  .tx { font-size: 14px; letter-spacing: 0.01em; }
+  .ta { font-size: 19px; line-height: 1.36; resize: none; min-height: 118px; }
+  .tx:focus, .ta:focus { border-color: var(--hair-lit); background: rgba(255, 255, 255, 0.06); }
+  .tx::placeholder, .ta::placeholder { color: var(--ink-mute); }
+
+  .swatch {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 240ms ease;
+  }
+  .swatch[aria-pressed="true"] { transform: scale(1.22); }
+
+  .pill.primary {
+    color: #05050a;
+    background: var(--ink);
+    border-color: var(--ink);
+    font-weight: 500;
+  }
+  .pill.primary:hover { background: #ffffff; border-color: #ffffff; color: #05050a; }
+  .pill:disabled { opacity: 0.34; cursor: not-allowed; }
+  .pill:disabled:hover { color: var(--ink-dim); border-color: var(--hair); background: rgba(255,255,255,0.035); }
+
+  .ledger-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  }
+  .ledger-row:last-of-type { border-bottom: 0; }
+  .ledger-n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 21px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    margin-left: auto;
+  }
+
+  .mine-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: 0;
+    border-radius: 10px;
+    padding: 9px 8px;
+    cursor: pointer;
+    color: var(--ink-dim);
+    transition: background-color 240ms ease, color 240ms ease;
+  }
+  .mine-row:hover { background: rgba(255, 255, 255, 0.055); color: var(--ink); }
+  .mine-row:focus-visible { outline: 2px solid rgba(237,238,244,0.7); outline-offset: 1px; }
+
   /* ══ phones and small tablets ══════════════════════════════ */
 
   @media (max-width: 760px) {
@@ -430,10 +616,10 @@
 
     .hud-tl { top: calc(16px + var(--sa-t)); left: calc(18px + var(--sa-l)); }
     .hud-tr { top: calc(16px + var(--sa-t)); right: calc(18px + var(--sa-r)); gap: 3px; }
-    .hud-bl { bottom: calc(74px + var(--sa-b)); left: calc(18px + var(--sa-l)); width: auto; right: calc(18px + var(--sa-r)); }
+    /* stack the bottom furniture instead of letting it collide */
+    .hud-bl { bottom: calc(112px + var(--sa-b)); left: calc(18px + var(--sa-l)); width: auto; right: calc(18px + var(--sa-r)); }
+    .hud-bc { bottom: calc(70px + var(--sa-b)); left: 18px; right: 18px; }
     .hud-br { bottom: calc(18px + var(--sa-b)); right: calc(18px + var(--sa-r)); gap: 8px; }
-    .hud-bc { bottom: calc(24px + var(--sa-b)); left: 18px; right: 118px; justify-content: flex-start; }
-    .hud-bc .hint { text-align: left; }
 
     .bracket { width: 14px; height: 14px; }
     .bracket.tl, .bracket.tr { top: calc(10px + var(--sa-t)); }
@@ -452,6 +638,20 @@
     .eyebrow { font-size: 8.5px; letter-spacing: 0.16em; }
     .pill { padding: 10px 14px; font-size: 9px; letter-spacing: 0.12em; }
     .panel { padding: 9px 12px; border-radius: 11px; }
+
+    /* sheets become bottom sheets, thumb-first */
+    .scrim { align-items: flex-end; padding: 0; }
+    .sheet {
+      max-width: none;
+      border-radius: 24px 24px 0 0;
+      border-bottom: 0;
+      padding: 20px 18px calc(20px + var(--sa-b));
+      max-height: 88dvh;
+    }
+    .sheet-title { font-size: 21px; }
+    .ta { font-size: 17px; min-height: 96px; }
+    .card.reply .echo-text { font-size: 17px; }
+    .toast { font-size: 9.5px; padding: 9px 14px; letter-spacing: 0.08em; }
     .masthead h1 { letter-spacing: 0.1em; }
   }
 
@@ -603,6 +803,8 @@ function echoAt(n) {
   const z = FIRST_Z + n * SPACING + (h1 * 2 - 1) * 96;
 
   const echo = {
+    key: 'g' + n,
+    kind: 'echo',
     n, z,
     x: (h2 * 2 - 1) * 262,
     y: (h3 * 2 - 1) * 148,
@@ -628,6 +830,43 @@ function nearMarker(z) {
   const m = ((z % MILESTONE) + MILESTONE) % MILESTONE;
   return m < 380 || m > MILESTONE - 380;
 }
+
+/* ── what the pilot does is not mock data ─────────────────────
+   The feed is generated, but every trace below is genuinely the
+   user's: what they held and for how long, what they left in the
+   void, and what they tethered to whom. Kept in memory, mirrored
+   to localStorage so a demo survives a reload.                  */
+
+const MAX_TEXT = 140;
+const STORE_KEY = 'aether.traces.v2';
+const BLANK = { handle: '', given: {}, mine: [], replies: {}, stats: { held: 0, seconds: 0, left: 0, tethered: 0 } };
+
+function loadTraces() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return BLANK;
+    const t = JSON.parse(raw);
+    return {
+      handle: typeof t.handle === 'string' ? t.handle : '',
+      given: t.given || {},
+      mine: Array.isArray(t.mine) ? t.mine : [],
+      replies: t.replies || {},
+      stats: Object.assign({ held: 0, seconds: 0, left: 0, tethered: 0 }, t.stats)
+    };
+  } catch (e) {
+    return BLANK;   // private window, storage disabled — the app still works
+  }
+}
+
+function saveTraces(t) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(t)); } catch (e) {}
+}
+
+/* the engagement primitive: resonance given is the time you held it.
+   Under a second is a tap, and a tap is worth nothing. */
+const MIN_HOLD_S = 1;
+const boostFor = sec => Math.min(0.3, Math.max(0, sec - MIN_HOLD_S) * 0.022);
+const resonanceOf = (echo, given) => clamp01(echo.res + ((given[echo.key] || {}).boost || 0));
 
 /* shared depth optics */
 function optics(distance) {
@@ -833,10 +1072,15 @@ function Sigil({ echo, size }) {
    5. ECHO — depth optics and the catch mechanic
    ══════════════════════════════════════════════════════════════ */
 
-function Echo({ echo, distance, isCaught, anyCaught, settling, arming, held, vp, onHoldStart, onHoldEnd, onToggle }) {
+function Echo({ echo, distance, isCaught, anyCaught, settling, arming, held, heldSec, given, vp, onHoldStart, onHoldEnd, onToggle }) {
   const bars = useMemo(() => waveform(echo.n, echo.res), [echo.n, echo.res]);
 
   if (distance < CULL_BEHIND || distance > CULL_AHEAD) return null;
+
+  const trace = given[echo.key];
+  const res = resonanceOf(echo, given);
+  const isMine = echo.kind === 'mine';
+  const isReply = echo.kind === 'reply';
 
   let { opacity, blur } = optics(distance);
   if (anyCaught && !isCaught) { opacity *= 0.09; blur += 9; }
@@ -849,7 +1093,15 @@ function Echo({ echo, distance, isCaught, anyCaught, settling, arming, held, vp,
 
   const shadow = isCaught
     ? '0 0 0 1px ' + echo.c + '5c, 0 0 40px ' + echo.c + '4d, 0 0 130px ' + echo.c + '24, 0 46px 96px rgba(0,0,0,0.66)'
-    : '0 28px 74px rgba(0,0,0,0.52), 0 0 36px ' + echo.c + '10';
+    : trace
+      // an echo you have held keeps a trace of it, permanently
+      ? '0 28px 74px rgba(0,0,0,0.52), 0 0 0 1px ' + echo.c + '33, 0 0 44px ' + echo.c + '1f'
+      : '0 28px 74px rgba(0,0,0,0.52), 0 0 36px ' + echo.c + '10';
+
+  // a reply shares its parent's depth, so a flat line to it is correct in 3D
+  const tether = isReply
+    ? { len: Math.hypot(echo.dx * vp.spread, echo.dy * vp.spread), ang: (Math.atan2(-echo.dy * vp.spread, -echo.dx * vp.spread) * 180) / Math.PI }
+    : null;
 
   return (
     <div
@@ -865,12 +1117,24 @@ function Echo({ echo, distance, isCaught, anyCaught, settling, arming, held, vp,
         className={'lens' + (settling ? ' settling' : '')}
         style={{ filter: blur > 0.05 ? 'blur(' + blur.toFixed(2) + 'px)' : 'none', opacity }}
       >
+        {tether && !anyCaught && (
+          <span
+            className="tether"
+            aria-hidden="true"
+            style={{
+              width: tether.len,
+              transform: 'rotate(' + tether.ang.toFixed(2) + 'deg)',
+              color: echo.c,
+              background: 'linear-gradient(90deg, ' + echo.c + 'cc, ' + echo.c + '2e)'
+            }}
+          />
+        )}
         <div
           role="button"
           tabIndex={live ? 0 : -1}
           aria-pressed={isCaught}
           aria-label={'Echo by ' + echo.author + '. ' + echo.text + (isCaught ? ' Caught.' : ' Hold to catch.')}
-          className={'card' + (near ? ' near' : '') + (live ? ' live' : '')}
+          className={'card' + (near ? ' near' : '') + (live ? ' live' : '') + (isMine ? ' mine' : '') + (isReply ? ' reply' : '')}
           style={{
             boxShadow: shadow,
             borderColor: isCaught ? echo.c + '52' : undefined,
@@ -878,11 +1142,11 @@ function Echo({ echo, distance, isCaught, anyCaught, settling, arming, held, vp,
             cursor: live ? 'pointer' : 'default',
             pointerEvents: live ? 'auto' : 'none'
           }}
-          onPointerDown={e => { e.preventDefault(); onHoldStart(echo.n, e); }}
+          onPointerDown={e => { e.preventDefault(); onHoldStart(echo, e); }}
           onPointerUp={() => onHoldEnd()}
           onPointerLeave={() => onHoldEnd()}
           onPointerCancel={() => onHoldEnd()}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(echo.n); } }}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(echo); } }}
         >
           {isCaught && (
             <span className="halo" style={{ boxShadow: 'inset 0 0 1px ' + echo.c + '80, 0 0 30px ' + echo.c + '2e' }} />
@@ -891,11 +1155,19 @@ function Echo({ echo, distance, isCaught, anyCaught, settling, arming, held, vp,
           <div className="card-head">
             <Sigil echo={echo} size={vp.compact ? 28 : 34} />
             <div style={{ minWidth: 0 }}>
-              <div className="handle">{echo.author}</div>
-              <div className="sub">{echo.place} · {echo.age} ago · {fmtDepth(echo.z)}</div>
+              <div className="handle" style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                {echo.author}
+                {isMine && <span className="chip" style={{ color: echo.c }}>you</span>}
+              </div>
+              <div className="sub">
+                {isReply ? 'answering @' + echo.parentAuthor : echo.place}
+                {' · '}{isMine ? 'filed ' : ''}{echo.age}{isMine ? ' deep' : ' ago'}
+                {' · '}{fmtDepth(echo.z)}
+              </div>
             </div>
-            <span className="sub" style={{ marginLeft: 'auto', color: echo.c, letterSpacing: '0.13em', whiteSpace: 'nowrap' }}>
-              {isCaught ? 'HELD ' + held : 'RES ' + Math.round(echo.res * 100)}
+            <span className="sub" style={{ marginLeft: 'auto', color: echo.c, letterSpacing: '0.13em', whiteSpace: 'nowrap', textAlign: 'right' }}>
+              {isCaught ? 'HELD ' + held : 'RES ' + Math.round(res * 100)}
+              {!isCaught && trace && <><br />YOU GAVE {trace.sec.toFixed(1)}s</>}
             </span>
           </div>
 
@@ -919,18 +1191,22 @@ function Echo({ echo, distance, isCaught, anyCaught, settling, arming, held, vp,
             <div>
               <div className="drawer-inner">
                 <span className="stamp" style={{ color: echo.c, whiteSpace: 'nowrap' }}>
-                  RESONANCE {Math.round(echo.res * 100)}
+                  RESONANCE {Math.round(res * 100)}
                 </span>
                 <div className="track">
                   <div
                     className="fill"
                     style={{
                       background: 'linear-gradient(90deg, ' + echo.c + '00, ' + echo.c + ')',
-                      transform: 'scaleX(' + (isCaught ? echo.res : 0) + ')'
+                      transform: 'scaleX(' + (isCaught ? res : 0) + ')'
                     }}
                   />
                 </div>
-                {!vp.compact && <span className="stamp" style={{ whiteSpace: 'nowrap' }}>THE FEED IS NOT MOVING</span>}
+                {!vp.compact && (
+                  <span className="stamp" style={{ whiteSpace: 'nowrap', color: heldSec >= MIN_HOLD_S ? echo.c : undefined }}>
+                    {heldSec < MIN_HOLD_S ? 'KEEP HOLDING' : 'GIVING +' + Math.round(boostFor(heldSec) * 100)}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -994,19 +1270,21 @@ function Masthead({ distance, anyCaught, vp }) {
 
 const MARKER_LINES = [
   d => 'The void does not end. That is not a feature.',
+  d => d.passed + ' thoughts have passed you. You held ' + d.held + '.',
   d => 'Airborne ' + d.clock + '. Nothing has asked you to stop.',
-  d => 'No bottom, no last page, no reason to look up.',
-  d => d.passed + ' thoughts have passed you. Name one.',
-  d => 'This marker exists because a feed never gives you one.'
+  d => d.seconds < 1
+    ? 'You have given nothing away yet. Holding is the only way to.'
+    : 'You have given ' + d.seconds.toFixed(0) + ' seconds of attention out of ' + d.clock + '.',
+  d => 'This marker exists because a feed will never give you one.'
 ];
 
-function Marker({ k, distance, anyCaught, clock, passed, vp }) {
+function Marker({ k, distance, anyCaught, clock, passed, held, seconds, vp }) {
   if (distance < CULL_BEHIND || distance > CULL_AHEAD) return null;
   let { opacity, blur } = optics(distance);
   if (anyCaught) opacity *= 0.08;
 
   const km = ((k * MILESTONE) / 1000).toFixed(1);
-  const line = MARKER_LINES[(k - 1) % MARKER_LINES.length]({ clock, passed });
+  const line = MARKER_LINES[(k - 1) % MARKER_LINES.length]({ clock, passed, held, seconds });
 
   return (
     <div
@@ -1032,7 +1310,7 @@ function Marker({ k, distance, anyCaught, clock, passed, vp }) {
           {line}
         </p>
         <div className="readout" style={{ marginTop: 14, color: 'var(--ink-mute)' }}>
-          AIRBORNE {clock} · {passed} PASSED
+          AIRBORNE {clock} · {passed} PASSED · {held} HELD
         </div>
       </div>
     </div>
@@ -1040,7 +1318,175 @@ function Marker({ k, distance, anyCaught, clock, passed, vp }) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   8. AUDIO — a velocity-tracking drone built from oscillators
+   8. WRITING — leave a thought in the void, or tether an answer
+   ══════════════════════════════════════════════════════════════ */
+
+function Composer({ mode, depth, parent, handle, onSubmit, onClose }) {
+  const answering = mode === 'answer';
+  const [text, setText] = useState('');
+  const [who, setWho] = useState(handle);
+  const [colour, setColour] = useState(answering && parent ? parent.c : PALETTE[3]);
+  const taRef = useRef(null);
+
+  useEffect(() => { if (taRef.current) taRef.current.focus(); }, []);
+
+  const left = MAX_TEXT - text.length;
+  const ready = text.trim().length > 1;
+  const submit = () => { if (ready) onSubmit({ text: text.trim(), who: (who.trim() || 'you').replace(/^@+/, '').slice(0, 20), colour }); };
+
+  return (
+    <div className="scrim" onPointerDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={answering ? 'Tether an answer' : 'Leave an echo'}>
+        <div className="eyebrow" style={{ letterSpacing: '0.26em' }}>
+          {answering ? 'Tether an answer' : 'Leave an echo'}
+        </div>
+        <h2 className="sheet-title">
+          {answering ? 'It hangs beside theirs, at the same depth.' : 'It stays where you are now.'}
+        </h2>
+        <p className="readout" style={{ marginTop: 12, lineHeight: 1.65, color: 'var(--ink-mute)' }}>
+          {answering ? (
+            <>Answering <b style={{ color: parent.c }}>@{parent.author}</b> at {fmtDepth(parent.z)}. No thread, no
+            pile — one answer, tethered in the same plane, and anyone flying past sees both at once.</>
+          ) : (
+            <>Filed at <b>{fmtDepth(depth)}</b>, which is <b>{ageAt(depth)}</b> deep. Depth is time here, so you
+            are choosing when this thought lives, not queueing it at the top of anything.</>
+          )}
+        </p>
+
+        <textarea
+          ref={taRef}
+          className="ta"
+          style={{ marginTop: 18 }}
+          maxLength={MAX_TEXT}
+          value={text}
+          placeholder={answering ? 'Say the one thing worth tethering…' : 'A thought worth 140 characters…'}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Escape') onClose();
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submit();
+          }}
+        />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
+          <input
+            className="tx"
+            style={{ width: 132 }}
+            value={who}
+            placeholder="your handle"
+            maxLength={20}
+            onChange={e => setWho(e.target.value)}
+            aria-label="Your handle"
+          />
+          <div style={{ display: 'flex', gap: 8 }} role="group" aria-label="Glow colour">
+            {PALETTE.map(c => (
+              <button
+                key={c}
+                className="swatch"
+                aria-label={'Glow ' + c}
+                aria-pressed={colour === c}
+                onClick={() => setColour(c)}
+                style={{ background: c, boxShadow: colour === c ? '0 0 14px ' + c : 'none' }}
+              />
+            ))}
+          </div>
+          <span className="stamp" style={{ marginLeft: 'auto', color: left < 20 ? '#FFB454' : undefined }}>
+            {left}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end' }}>
+          <button className="pill" onClick={onClose}>Cancel</button>
+          <button className="pill primary" onClick={submit} disabled={!ready}>
+            {answering ? 'Tether it' : 'Leave it here'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   9. LEDGER — the receipt no feed will hand you
+   ══════════════════════════════════════════════════════════════ */
+
+function Ledger({ traces, passed, secs, onFlyTo, onClear, onClose }) {
+  const s = traces.stats;
+  const rate = passed > 0 ? (s.held / passed) * 100 : 0;
+  const attention = secs > 0 ? (s.seconds / secs) * 100 : 0;
+
+  return (
+    <div className="scrim" onPointerDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label="Your ledger">
+        <div className="eyebrow" style={{ letterSpacing: '0.26em' }}>Your ledger</div>
+        <h2 className="sheet-title">What this flight actually cost.</h2>
+
+        <div style={{ marginTop: 20 }}>
+          <div className="ledger-row">
+            <div>
+              <div className="readout"><b>Flew past</b></div>
+              <div className="eyebrow" style={{ marginTop: 4 }}>thoughts you did not stop for</div>
+            </div>
+            <span className="ledger-n" style={{ color: 'var(--ink-dim)' }}>{passed}</span>
+          </div>
+          <div className="ledger-row">
+            <div>
+              <div className="readout"><b>Held</b></div>
+              <div className="eyebrow" style={{ marginTop: 4 }}>{rate.toFixed(1)}% of what passed you</div>
+            </div>
+            <span className="ledger-n" style={{ color: '#4FFFC4' }}>{s.held}</span>
+          </div>
+          <div className="ledger-row">
+            <div>
+              <div className="readout"><b>Attention given</b></div>
+              <div className="eyebrow" style={{ marginTop: 4 }}>{attention.toFixed(1)}% of {fmtClock(secs)} airborne</div>
+            </div>
+            <span className="ledger-n" style={{ color: '#5EE7FF' }}>{s.seconds.toFixed(1)}s</span>
+          </div>
+          <div className="ledger-row">
+            <div>
+              <div className="readout"><b>Left in the void</b></div>
+              <div className="eyebrow" style={{ marginTop: 4 }}>your own echoes, filed by depth</div>
+            </div>
+            <span className="ledger-n" style={{ color: '#8B7CFF' }}>{s.left}</span>
+          </div>
+          <div className="ledger-row">
+            <div>
+              <div className="readout"><b>Tethered</b></div>
+              <div className="eyebrow" style={{ marginTop: 4 }}>answers hung beside someone else's</div>
+            </div>
+            <span className="ledger-n" style={{ color: '#FF4D9D' }}>{s.tethered}</span>
+          </div>
+        </div>
+
+        {traces.mine.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <div className="eyebrow" style={{ marginBottom: 6 }}>Fly back to yours</div>
+            {traces.mine.slice().reverse().slice(0, 6).map(m => (
+              <button key={m.key} className="mine-row" onClick={() => onFlyTo(m.z)}>
+                <span className="dot" style={{ width: 6, height: 6, borderRadius: '50%', background: m.c, flex: 'none' }} />
+                <span style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.text}</span>
+                <span className="stamp" style={{ marginLeft: 'auto', flex: 'none' }}>{fmtDepth(m.z)}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <p className="eyebrow" style={{ marginTop: 22, lineHeight: 1.9, letterSpacing: '0.1em' }}>
+          The feed is generated and its baseline resonance is synthetic.<br />
+          Everything on this page is yours, measured from this session.
+        </p>
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 18, justifyContent: 'flex-end' }}>
+          <button className="pill" onClick={onClear}>Erase my traces</button>
+          <button className="pill primary" onClick={onClose}>Keep flying</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   10. AUDIO — a velocity-tracking drone built from oscillators
    ══════════════════════════════════════════════════════════════ */
 
 function useAudio(velRef) {
@@ -1109,7 +1555,7 @@ function useAudio(velRef) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   9. APP — flight physics, gestures, HUD
+   11. APP — flight physics, gestures, social state, HUD
    ══════════════════════════════════════════════════════════════ */
 
 function App() {
@@ -1119,24 +1565,36 @@ function App() {
   const velRef = useRef(0);
   const [pos, setPos] = useState(0);
   const [vel, setVel] = useState(0);
-  const [caughtN, setCaughtN] = useState(null);
-  const [armingN, setArmingN] = useState(null);
+  const [caughtKey, setCaughtKey] = useState(null);
+  const [armingKey, setArmingKey] = useState(null);
   const [settling, setSettling] = useState(false);
   const [touched, setTouched] = useState(false);
   const [heldMs, setHeldMs] = useState(0);
   const [secs, setSecs] = useState(0);
+
+  /* social state: mock feed, real traces */
+  const [traces, setTraces] = useState(loadTraces);
+  const [sheet, setSheet] = useState(null);      // 'compose' | 'answer' | 'ledger'
+  const [toast, setToast] = useState(null);
+
+  const passedRef = useRef(0);
+  const toastTimer = useRef(null);
+  const uiOpenRef = useRef(false);
+  uiOpenRef.current = sheet !== null;
 
   const caughtRef = useRef(null);
   const armingRef = useRef(null);
   const holdTimer = useRef(null);
   const settleTimer = useRef(null);
   const holdPt = useRef({ x: 0, y: 0 });
+  const caughtObj = useRef(null);
+  const caughtAt = useRef(0);
   const stageRef = useRef(null);
   const perspRef = useRef(null);
   const tilt = useRef({ tx: 0, ty: 0, x: 0, y: 0 });
 
-  caughtRef.current = caughtN;
-  armingRef.current = armingN;
+  caughtRef.current = caughtKey;
+  armingRef.current = armingKey;
   const audio = useAudio(velRef);
 
   /* --- flight loop: input adds velocity, friction bleeds it off --- */
@@ -1182,11 +1640,23 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (caughtN === null) { setHeldMs(0); return; }
+    if (caughtKey === null) { setHeldMs(0); return; }
     const t0 = Date.now();
     const iv = setInterval(() => setHeldMs(Date.now() - t0), 200);
     return () => clearInterval(iv);
-  }, [caughtN]);
+  }, [caughtKey]);
+
+  /* mirror traces to localStorage, debounced */
+  useEffect(() => {
+    const t = setTimeout(() => saveTraces(traces), 400);
+    return () => clearTimeout(t);
+  }, [traces]);
+
+  const say = useCallback(msg => {
+    setToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 4200);
+  }, []);
 
   const nudge = useCallback(delta => {
     velRef.current = clamp(velRef.current + delta, -MAX_VEL, MAX_VEL);
@@ -1194,7 +1664,7 @@ function App() {
   }, []);
 
   const onWheel = useCallback(e => {
-    if (caughtRef.current !== null) return;
+    if (caughtRef.current !== null || uiOpenRef.current) return;
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
     nudge(e.deltaY * unit * WHEEL_GAIN);
   }, [nudge]);
@@ -1205,16 +1675,44 @@ function App() {
     settleTimer.current = setTimeout(() => setSettling(false), 860);
   }, []);
 
+  /* ── releasing is the transaction: you give the seconds you held ── */
   const release = useCallback(() => {
+    const echo = caughtObj.current;
+    const sec = caughtAt.current ? (Date.now() - caughtAt.current) / 1000 : 0;
     beginSettle();
-    setCaughtN(null);
+    setCaughtKey(null);
+    caughtAt.current = 0;
     audio.chime(392);
-  }, [beginSettle, audio]);
 
-  const catchEcho = useCallback(n => {
+    if (!echo) return;
+
+    if (sec < MIN_HOLD_S) {
+      say('released after ' + sec.toFixed(1) + 's — nothing given');
+      return;
+    }
+
+    const boost = boostFor(sec);
+    setTraces(t => {
+      const prev = t.given[echo.key] || { sec: 0, boost: 0 };
+      return {
+        ...t,
+        given: { ...t.given, [echo.key]: { sec: prev.sec + sec, boost: Math.min(0.4, prev.boost + boost) } },
+        stats: {
+          ...t.stats,
+          held: t.stats.held + (t.given[echo.key] ? 0 : 1),
+          seconds: t.stats.seconds + sec
+        }
+      };
+    });
+    say('held ' + sec.toFixed(1) + 's · +' + Math.round(boost * 100) + ' resonance to @' + echo.author);
+  }, [beginSettle, audio, say]);
+
+  const catchEcho = useCallback(echo => {
     beginSettle();
     velRef.current = 0;
-    setCaughtN(n);
+    caughtObj.current = echo;
+    caughtAt.current = Date.now();
+    setCaughtKey(echo.key);
     setTouched(true);
     audio.chime(528);
     if (navigator.vibrate) navigator.vibrate(14);
@@ -1222,28 +1720,114 @@ function App() {
 
   const onHoldEnd = useCallback(() => {
     clearTimeout(holdTimer.current);
-    setArmingN(null);
+    setArmingKey(null);
   }, []);
 
-  const onHoldStart = useCallback((n, e) => {
-    if (caughtRef.current === n) { release(); return; }
+  const onHoldStart = useCallback((echo, e) => {
+    if (caughtRef.current === echo.key) { release(); return; }
     if (caughtRef.current !== null) return;
     holdPt.current = { x: e.clientX, y: e.clientY };
-    setArmingN(n);
+    setArmingKey(echo.key);
     clearTimeout(holdTimer.current);
-    holdTimer.current = setTimeout(() => { setArmingN(null); catchEcho(n); }, HOLD_MS);
+    holdTimer.current = setTimeout(() => { setArmingKey(null); catchEcho(echo); }, HOLD_MS);
   }, [catchEcho, release]);
 
-  const onToggle = useCallback(n => {
-    if (caughtRef.current === n) release(); else catchEcho(n);
+  const onToggle = useCallback(echo => {
+    if (caughtRef.current === echo.key) release(); else catchEcho(echo);
   }, [catchEcho, release]);
+
+  /* ── leaving an echo, and tethering an answer ── */
+  const flyTo = useCallback(z => {
+    beginSettle();
+    velRef.current = 0;
+    posRef.current = z - FOCUS_Z;
+    setPos(z - FOCUS_Z);
+  }, [beginSettle]);
+
+  const leaveEcho = useCallback(({ text, who, colour }) => {
+    const z = posRef.current + FOCUS_Z + 40;
+    const seed = Math.floor(Math.random() * 100000);
+    const echo = {
+      key: 'u' + Date.now(),
+      kind: 'mine',
+      n: seed,
+      z,
+      x: (hash(seed * 1.7) * 2 - 1) * 150,
+      y: (hash(seed * 2.9) * 2 - 1) * 90,
+      c: colour,
+      res: 0,
+      author: who,
+      place: 'you',
+      text,
+      age: ageAt(z)
+    };
+    setTraces(t => ({
+      ...t,
+      handle: who,
+      mine: [...t.mine, echo],
+      stats: { ...t.stats, left: t.stats.left + 1 }
+    }));
+    setSheet(null);
+    say('filed at ' + fmtDepth(z) + ' — ' + ageAt(z) + ' deep');
+  }, [say]);
+
+  const tetherAnswer = useCallback(({ text, who, colour }) => {
+    const parent = caughtObj.current;
+    if (!parent) { setSheet(null); return; }
+    const seed = Math.floor(Math.random() * 100000);
+    const side = hash(seed) > 0.5 ? 1 : -1;
+    const reply = {
+      key: 'r' + Date.now(),
+      kind: 'reply',
+      n: seed,
+      z: parent.z,
+      parentKey: parent.key,
+      parentAuthor: parent.author,
+      // offset from the parent, in the plane they now share
+      dx: side * (300 + hash(seed * 3.1) * 80),
+      dy: (hash(seed * 5.3) * 2 - 1) * 150,
+      x: 0, y: 0,
+      c: colour,
+      res: 0,
+      author: who,
+      place: 'you',
+      text,
+      age: ageAt(parent.z)
+    };
+    reply.x = parent.x + reply.dx;
+    reply.y = parent.y + reply.dy;
+    setTraces(t => ({
+      ...t,
+      handle: who,
+      replies: { ...t.replies, [reply.key]: reply },
+      stats: { ...t.stats, tethered: t.stats.tethered + 1 }
+    }));
+    setSheet(null);
+    say('tethered beside @' + parent.author + ' at ' + fmtDepth(parent.z));
+  }, [say]);
+
+  const eraseTraces = useCallback(() => {
+    setTraces(BLANK);
+    saveTraces(BLANK);
+    passedRef.current = 0;
+    setSheet(null);
+    say('traces erased — the void keeps no other copy');
+  }, [say]);
 
   /* --- keyboard flight --- */
   useEffect(() => {
     const onKey = e => {
-      if (e.key === 'Escape') { if (caughtRef.current !== null) release(); return; }
+      if (e.key === 'Escape') {
+        if (uiOpenRef.current) setSheet(null);
+        else if (caughtRef.current !== null) release();
+        return;
+      }
       const tag = (e.target.tagName || '').toLowerCase();
       if (tag === 'input' || tag === 'textarea') return;
+      if (uiOpenRef.current) return;
+      if (e.key === 'n' && caughtRef.current === null) { e.preventDefault(); velRef.current = 0; setSheet('compose'); return; }
+      if (e.key === 'l' && caughtRef.current === null) { e.preventDefault(); setSheet('ledger'); return; }
+      if (e.key === 'r' && caughtRef.current !== null) { e.preventDefault(); setSheet('answer'); return; }
       if (caughtRef.current !== null) return;
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); nudge(46); }
       else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); nudge(-46); }
@@ -1257,9 +1841,9 @@ function App() {
 
   /* --- touch: swipe up to fly, and a fling that coasts --- */
   const touchY = useRef(null);
-  const onTouchStart = e => { touchY.current = e.touches[0].clientY; };
+  const onTouchStart = e => { if (!uiOpenRef.current) touchY.current = e.touches[0].clientY; };
   const onTouchMove = e => {
-    if (touchY.current === null || caughtRef.current !== null) return;
+    if (touchY.current === null || caughtRef.current !== null || uiOpenRef.current) return;
     const y = e.touches[0].clientY;
     nudge((touchY.current - y) * DRAG_GAIN);
     touchY.current = y;
@@ -1268,6 +1852,7 @@ function App() {
 
   /* a drag that started on a card is a flight, not a catch */
   const onPointerMove = e => {
+    if (uiOpenRef.current) return;
     if (armingRef.current !== null) {
       const dx = e.clientX - holdPt.current.x;
       const dy = e.clientY - holdPt.current.y;
@@ -1286,8 +1871,12 @@ function App() {
       const e = echoAt(n);
       if (!nearMarker(e.z)) out.push(e);
     }
+    // your own echoes and tethered answers occupy the same void
+    const inRange = o => { const d = o.z - pos; return d >= CULL_BEHIND && d <= CULL_AHEAD; };
+    for (const m of traces.mine) if (inRange(m)) out.push(m);
+    for (const k in traces.replies) if (inRange(traces.replies[k])) out.push(traces.replies[k]);
     return out;
-  }, [pos]);
+  }, [pos, traces.mine, traces.replies]);
 
   const markers = useMemo(() => {
     const out = [];
@@ -1297,13 +1886,17 @@ function App() {
     return out;
   }, [pos]);
 
-  const caught = caughtN === null ? null : echoAt(caughtN);
-  const passed = Math.max(0, Math.floor((pos - FIRST_Z) / SPACING) + 1);
-  const nextUp = visible.find(e => e.z - pos > SWEET_FAR);
+  const caught = caughtKey === null ? null : caughtObj.current;
+  const nextUp = visible.find(e => e.z - pos > SWEET_FAR && e.kind === 'echo');
   const speed = (Math.abs(vel) * 60) / 1000;   // m/frame at 60 fps → km/s
-  const held = Math.floor(heldMs / 1000);
-  const heldLabel = fmtClock(held);
+  const heldSec = heldMs / 1000;
+  const heldLabel = fmtClock(Math.floor(heldSec));
   const clock = fmtClock(secs);
+
+  // how many thoughts have gone past — a high-water mark, so flying back does not undo it
+  const reach = Math.max(0, Math.floor((pos - FIRST_Z) / SPACING) + 1);
+  if (reach > passedRef.current) passedRef.current = reach;
+  const passed = passedRef.current;
 
   return (
     <main
@@ -1314,9 +1907,9 @@ function App() {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onTouchCancel={onTouchEnd}
-      onPointerDown={e => { if (e.target === e.currentTarget && caughtN !== null) release(); }}
+      onPointerDown={e => { if (e.target === e.currentTarget && caughtKey !== null) release(); }}
     >
-      <div className="nebula" aria-hidden="true" style={{ opacity: caughtN !== null ? 0.34 : 1 }} />
+      <div className="nebula" aria-hidden="true" style={{ opacity: caughtKey !== null ? 0.34 : 1 }} />
       <Field camRef={posRef} velRef={velRef} vp={vp} />
 
       <div
@@ -1327,30 +1920,34 @@ function App() {
 
       <div className="stage" ref={perspRef}>
         <div className="stage-inner" ref={stageRef}>
-          <Masthead distance={MASTHEAD_Z - pos} anyCaught={caughtN !== null} vp={vp} />
+          <Masthead distance={MASTHEAD_Z - pos} anyCaught={caughtKey !== null} vp={vp} />
 
           {markers.map(k => (
             <Marker
               key={'m' + k}
               k={k}
               distance={k * MILESTONE - pos}
-              anyCaught={caughtN !== null}
+              anyCaught={caughtKey !== null}
               clock={clock}
               passed={passed}
+              held={traces.stats.held}
+              seconds={traces.stats.seconds}
               vp={vp}
             />
           ))}
 
           {visible.map(echo => (
             <Echo
-              key={echo.n}
+              key={echo.key}
               echo={echo}
-              distance={caughtN === echo.n ? FOCUS_Z : echo.z - pos}
-              isCaught={caughtN === echo.n}
-              anyCaught={caughtN !== null}
+              distance={caughtKey === echo.key ? FOCUS_Z : echo.z - pos}
+              isCaught={caughtKey === echo.key}
+              anyCaught={caughtKey !== null}
               settling={settling}
-              arming={armingN === echo.n}
+              arming={armingKey === echo.key}
               held={heldLabel}
+              heldSec={heldSec}
+              given={traces.given}
               vp={vp}
               onHoldStart={onHoldStart}
               onHoldEnd={onHoldEnd}
@@ -1360,7 +1957,7 @@ function App() {
         </div>
       </div>
 
-      <div className="vignette" aria-hidden="true" style={{ opacity: caughtN !== null ? 1.7 : 1 }} />
+      <div className="vignette" aria-hidden="true" style={{ opacity: caughtKey !== null ? 1.7 : 1 }} />
 
       {!vp.compact && (
         <svg className="grain" aria-hidden="true" width="100%" height="100%">
@@ -1401,21 +1998,22 @@ function App() {
           {markers.map(k => {
             const d = k * MILESTONE - pos;
             if (d < 0) return null;
-            return <div key={'rm' + k} className="blip marker" style={{ top: (100 - (d / CULL_AHEAD) * 100) + '%', opacity: caughtN !== null ? 0.25 : 0.75 }} />;
+            return <div key={'rm' + k} className="blip marker" style={{ top: (100 - (d / CULL_AHEAD) * 100) + '%', opacity: caughtKey !== null ? 0.25 : 0.75 }} />;
           })}
           {visible.map(e => {
-            const d = caughtN === e.n ? FOCUS_Z : e.z - pos;
+            const d = caughtKey === e.key ? FOCUS_Z : e.z - pos;
             if (d < 0) return null;
-            const isC = caughtN === e.n;
+            const isC = caughtKey === e.key;
             return (
               <div
-                key={e.n}
+                key={e.key}
                 className={'blip' + (isC ? ' caught' : '')}
                 style={{
                   top: (100 - (d / CULL_AHEAD) * 100) + '%',
                   background: isC ? e.c : e.c + '7a',
-                  boxShadow: isC ? '0 0 11px ' + e.c : 'none',
-                  opacity: caughtN !== null && !isC ? 0.25 : 1
+                  boxShadow: isC || traces.given[e.key] ? '0 0 11px ' + e.c : 'none',
+                  width: e.kind !== 'echo' ? 13 : undefined,
+                  opacity: caughtKey !== null && !isC ? 0.25 : 1
                 }}
               />
             );
@@ -1429,11 +2027,14 @@ function App() {
           <div className="panel">
             {caught ? (
               <div>
-                <div className="eyebrow" style={{ color: caught.c }}>Caught · held {heldLabel}</div>
+                <div className="eyebrow" style={{ color: caught.c }}>Holding · {heldLabel}</div>
                 <div className="readout" style={{ marginTop: 8, lineHeight: 1.6 }}>
-                  <b>{caught.author}</b> · {caught.place}
+                  <b>@{caught.author}</b>
                   {!vp.compact && <br />}
-                  {vp.compact ? ' · ' : ''}resonance {Math.round(caught.res * 100)}
+                  {vp.compact ? ' · ' : ''}
+                  {heldSec < MIN_HOLD_S
+                    ? 'nothing given yet'
+                    : 'giving +' + Math.round(boostFor(heldSec) * 100) + ' resonance'}
                 </div>
               </div>
             ) : nextUp ? (
@@ -1461,26 +2062,66 @@ function App() {
         </div>
 
         <div className="hud-br">
-          <button className="pill" onClick={audio.toggle} aria-pressed={audio.on} style={audio.on ? { color: 'var(--ink)', borderColor: 'var(--hair-lit)' } : undefined}>
-            {audio.on ? '◼' : '▶'}{vp.compact ? '' : audio.on ? ' Drone on' : ' Drone'}
-          </button>
-          {caught && <button className="pill" onClick={release}>Release{vp.compact ? '' : ' · Esc'}</button>}
+          {caught ? (
+            <>
+              <button className="pill" onClick={() => setSheet('answer')}>↳{vp.compact ? '' : ' Answer'}</button>
+              <button className="pill primary" onClick={release}>Release{vp.compact ? '' : ' · Esc'}</button>
+            </>
+          ) : (
+            <>
+              <button className="pill" onClick={audio.toggle} aria-pressed={audio.on} style={audio.on ? { color: 'var(--ink)', borderColor: 'var(--hair-lit)' } : undefined}>
+                {audio.on ? '◼' : '▶'}{vp.compact ? '' : audio.on ? ' Drone on' : ' Drone'}
+              </button>
+              <button className="pill" onClick={() => setSheet('ledger')}>
+                ≡{vp.compact ? '' : ' Ledger'}
+              </button>
+              <button className="pill primary" onClick={() => { velRef.current = 0; setSheet('compose'); }}>
+                +{vp.compact ? '' : ' Leave an echo'}
+              </button>
+            </>
+          )}
         </div>
 
         <div className="hud-bc">
-          <div
-            className="hint"
-            style={{ opacity: caught ? 0 : touched ? 0.4 : 1, transform: touched ? 'translateY(4px)' : 'none' }}
-          >
-            {!touched && vp.touch && (
-              <svg className="chev" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true">
-                <path d="M1 9L8 2l7 7" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
-            )}
-            {vp.touch ? 'Swipe up to fly · hold to catch' : 'Scroll to fly forward — hold an echo to catch it'}
-          </div>
+          {toast ? (
+            <div className="toast" role="status" style={{ color: 'var(--ink)' }}>{toast}</div>
+          ) : (
+            <div
+              className="hint"
+              style={{ opacity: caught ? 0 : touched ? 0.4 : 1, transform: touched ? 'translateY(4px)' : 'none' }}
+            >
+              {!touched && vp.touch && (
+                <svg className="chev" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true">
+                  <path d="M1 9L8 2l7 7" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+              )}
+              {vp.touch ? 'Swipe up to fly · hold to catch' : 'Scroll to fly forward — hold an echo to catch it'}
+            </div>
+          )}
         </div>
       </div>
+
+      {(sheet === 'compose' || sheet === 'answer') && (
+        <Composer
+          mode={sheet}
+          depth={pos + FOCUS_Z + 40}
+          parent={caught}
+          handle={traces.handle}
+          onSubmit={sheet === 'answer' ? tetherAnswer : leaveEcho}
+          onClose={() => setSheet(null)}
+        />
+      )}
+
+      {sheet === 'ledger' && (
+        <Ledger
+          traces={traces}
+          passed={passed}
+          secs={secs}
+          onFlyTo={z => { flyTo(z); setSheet(null); }}
+          onClear={eraseTraces}
+          onClose={() => setSheet(null)}
+        />
+      )}
     </main>
   );
 }
