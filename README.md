@@ -1,6 +1,6 @@
 # Aether
 
-**An endless feed that tells you what it is costing you.** The timeline runs forward on the Z axis instead of down the Y axis, the void never ends, and every 5 km it hands you a receipt.
+**A social network where attention is the only currency, and it is measured in seconds.** The timeline runs forward on the Z axis instead of down the Y axis, the void never ends, and you cannot like anything — you can only hold it still.
 
 [![Live](https://img.shields.io/badge/live-navyashreens.github.io%2Faether-5EE7FF?style=flat-square)](https://navyashreens.github.io/aether/)
 [![Build](https://img.shields.io/badge/build_step-none-8B7CFF?style=flat-square)](#how-to-run)
@@ -31,7 +31,54 @@ Two things change the deal:
 
 That is the argument, and it is sharper than a wall. The feed is infinite; it just refuses to be quiet about it. No real feed will ever tell you how long you have been in it or how much went past unread. This one does, in monospace, five times over every 25 km.
 
-**And you cannot like an echo.** To engage with one you press and **hold** it for 320 ms. A ring fills under your finger; when it closes the echo is *caught* — forward momentum drops to zero, the void dims and blurs around it, a spotlight blooms behind it, and a timer starts counting how long you have held it still. Attention costs something again.
+---
+
+## Reimagining the interaction, not just the interface
+
+The 3D tunnel is the *setting*. The point is what social actions become when the medium changes. Every primitive here is rebuilt from one rule: **engagement costs time, and the interface bills you for it.**
+
+| Conventional social | Aether | Why it changes the behaviour |
+|:---|:---|:---|
+| **Like** — a tap, costs nothing, means nothing | **Resonance is the seconds you held it.** Hold under 1 s and you gave *nothing* — the toast says so | You cannot approve of something you did not read. The cost is time, which is finite and cannot be faked |
+| **Post** to the top of a timeline | **File a thought at your current depth.** Depth is time, so you choose *when* it lives, not where it queues | Your thought is a place in the void others fly through, not an item that decays out of a ranking |
+| **Reply** nested in a thread | **Tether an answer.** It hangs in the same plane as what it answers, joined by a drawn line — and only while you are holding the parent | No dogpile, no nesting, no last word. One answer, and anyone flying past sees both at once, as a constellation |
+| **Metrics shown to the poster** | **A ledger shown to *you*** — thoughts passed vs. held, seconds given vs. seconds airborne | The number that matters is not how many people saw you. It is how much of your life you handed over |
+
+### The engagement economy, measured
+
+`boost = min(0.30, max(0, seconds − 1) × 0.022)`, and any single echo accepts at most `+0.40` from you ever.
+
+| You held it | Resonance you gave |
+|---:|:---|
+| 0.9 s | **+0** — that is a tap, and a tap is worth nothing |
+| 2 s | +2 |
+| 3 s | +4 |
+| 5 s | +9 |
+| 10 s | +20 |
+| 14.6 s | +30 — the per-hold ceiling |
+| 48 s across 12 separate holds | +40 — the lifetime cap, so one echo cannot be farmed |
+
+Resonance is clamped at 100, so even a maxed baseline plus a full contribution cannot overflow. The economics are deliberately punishing: getting an echo from 34 to 54 resonance costs you roughly fifteen seconds of not doing anything else.
+
+### What is mock and what is real
+
+The brief allows mock data. The distinction is drawn honestly, and the ledger says so on its own face:
+
+| Generated / mock | Genuinely yours, this session |
+|:---|:---|
+| The 40-echo corpus and its authors | Every echo you held, and for how long |
+| Baseline resonance, place, age | Every resonance point you gave |
+| Echo positions in the void | Every thought you filed, and at what depth |
+| — | Every answer you tethered, and to whom |
+| — | Thoughts passed, seconds given, time airborne |
+
+Your traces live in memory and are mirrored to `localStorage`, so a demo survives a reload — and **Erase my traces** in the ledger genuinely erases them. All storage access is wrapped in `try/catch`, so a private window or blocked storage degrades to session-only instead of breaking the app.
+
+### The catch mechanic
+
+To engage with an echo you press and **hold** it for 320 ms. A ring fills under your finger; when it closes the echo is *caught* — forward momentum drops to zero, the void dims and blurs around it, a spotlight blooms behind it, and a live counter starts showing what you are currently giving (`KEEP HOLDING` until it crosses one second, then `GIVING +4`). Release, and the transaction lands: the resonance meter animates up, the echo keeps a permanent ring in its own colour marking that you held it, and the ledger increments.
+
+While you are holding one — and *only* while you are holding one — you can answer it.
 
 ---
 
@@ -169,14 +216,20 @@ The distinction the mechanic encodes: a like is a verdict you issue in 40 ms and
 |:---|:---|
 | Wheel / trackpad | throttle forward and back |
 | Swipe up / down | throttle, with a fling that coasts |
-| Press and hold an echo | catch it |
-| `Esc` or tap the void | release |
+| Press and hold an echo | catch it — and start giving it your seconds |
+| `Esc` or tap the void | release, which lands the transaction |
+| **`+ Leave an echo`** or `n` | file a thought at your current depth |
+| **`↳ Answer`** or `r` | tether an answer to what you are holding |
+| **`≡ Ledger`** or `l` | what this flight has cost you |
 | `↑` `↓` `←` `→` | throttle ±46 m/frame |
 | `Space` / `PageDown` | throttle +150 m/frame |
 | `PageUp` | throttle −150 m/frame |
 | `Home` | jump back to 0 m |
 | `Tab` + `Enter` | focus and catch, for keyboard-only use |
+| `⌘`/`Ctrl` + `Enter` | submit from inside the composer |
 | Pointer move | parallax, ±5° yaw and ±4° pitch (pointer devices only) |
+
+Writing is deliberately gated on a catch: **the Answer button only exists while you are holding something.** You cannot reply to a thought you flew past.
 
 ---
 
@@ -188,7 +241,9 @@ Not a shrunken desktop layout — the phone build makes different decisions, all
 
 **Viewport.** `100dvh` instead of `100vh`, so the address bar appearing does not clip the void. `viewport-fit=cover` plus `env(safe-area-inset-*)` on every HUD anchor, so nothing hides under a notch or a home indicator.
 
-**Layout.** The off-axis scatter is scaled by `clamp(width / 900, 0.34, 1)` — at full desktop spread, a card 262 m off the flight axis is simply off-screen on a 390 px phone. Cards are `min(width − 34, 400)` px, type steps 27 → 21 → 19 px, and there is a separate breakpoint for landscape phones (`max-height: 460px`), which have almost no vertical room and lose the radar.
+**Layout.** The off-axis scatter is scaled by `clamp(width / 900, 0.34, 1)` — at full desktop spread, a card 262 m off the flight axis is simply off-screen on a 390 px phone. Cards are `min(width − 34, 400)` px, type steps 27 → 21 → 19 px, and there is a separate breakpoint for landscape phones (`max-height: 460px`), which have almost no vertical room and lose the radar. The three bottom HUD anchors stack rather than collide: buttons at 18 px, toast at 70 px, panel at 112 px, each plus the safe-area inset.
+
+**Writing on a phone.** The composer and ledger become **bottom sheets** — full-width, rounded only at the top, capped at `88dvh`, and padded past the home indicator, so the keyboard opens under a control that is already in thumb reach. Every gesture handler checks one `uiOpenRef` flag, so a swipe inside a sheet scrolls the sheet instead of flying the void, and `user-select: text` is restored on the sheet alone since the void itself disables selection.
 
 **Performance.** `backdrop-filter` is the expensive property, so mobile gets less of it in two ways at once — a 16 px radius instead of 36, and only for cards inside 900 m instead of 1 600 m.
 
@@ -215,6 +270,7 @@ Deliberately, aggressively small. **One file, no build step, no `node_modules`, 
 | 3D | CSS `perspective` and `translate3d`. No Three.js, no WebGL, no shaders |
 | Background | one 2D `<canvas>`, hand-projected |
 | Feed | a hash function. No backend, no database, no fetch |
+| Your traces | React state, mirrored to `localStorage` in a `try/catch` |
 | Audio | WebAudio oscillators — two detuned voices through a low-pass. No audio files |
 | Type | Familjen Grotesk (display), Manrope (UI), JetBrains Mono (telemetry) |
 | Total dependencies installed | **0** |
@@ -236,18 +292,22 @@ aether/
 ├── index.html     the entire application
 │   ├── <head>     CDN pins, Google Fonts, ~520 lines of CSS incl. 3 mobile breakpoints
 │   └── <script type="text/babel">
-│       ├── CORPUS[40]      the written echoes: text, author, place
+│       ├── CORPUS[40]       the written echoes: text, author, place
 │       ├── hash() echoAt()  the infinite feed — echo n computed from n, cached
 │       ├── ageAt()          depth → age, because z is the timeline
+│       ├── boostFor()       seconds held → resonance given. The economy, in one line
+│       ├── load/saveTraces() your side of the network, mirrored to localStorage
 │       ├── optics()         distance → { opacity, blur }, shared by every object
 │       ├── readViewport()   the single source of every phone/desktop decision
 │       ├── <Field/>         canvas: wireframe tunnel + projected dust
 │       ├── <Sigil/>         generated SVG mark, stable per echo
-│       ├── <Echo/>          glass card, depth optics, catch mechanic
+│       ├── <Echo/>          glass card, depth optics, catch mechanic, tether
 │       ├── <Masthead/>      the title plate, parked at 0 m inside the tunnel
-│       ├── <Marker/>        the 5 km receipt
+│       ├── <Marker/>        the 5 km receipt, written from your own stats
+│       ├── <Composer/>      leave an echo, or tether an answer
+│       ├── <Ledger/>        what this flight cost, and a way back to your own
 │       ├── useAudio()       velocity-tracking drone and catch chime
-│       └── <App/>           flight loop, gestures, HUD, radar
+│       └── <App/>           flight loop, gestures, social state, HUD, radar
 ├── README.md
 ├── LICENSE
 ├── .nojekyll      tells GitHub Pages to serve the file as-is
@@ -258,7 +318,11 @@ aether/
 
 The masthead is not a hero section — it is an object at 0 m. The title flies away from you on your first scroll and can be flown back to, which means the page has no chrome sitting outside the world.
 
-The strip on the right edge is not a scrollbar, because an infinite feed cannot have one. It is a **proximity radar** showing the next 3 km: blips slide down as echoes approach the lens line at the bottom, in each echo's own colour, with wider white blips for depth markers. It answers "what is coming" rather than the meaningless "how far through am I".
+The strip on the right edge is not a scrollbar, because an infinite feed cannot have one. It is a **proximity radar** showing the next 3 km: blips slide down as echoes approach the lens line at the bottom, in each echo's own colour, with wider white blips for depth markers and a glow on any echo you have held. It answers "what is coming" rather than the meaningless "how far through am I".
+
+**The tether is the part I am most pleased with.** A reply shares its parent's exact `zDepth`, which means the two cards lie in the same plane — so a flat 2 D line drawn between them inside the reply's own transform layer is *geometrically correct in 3 D*, and the browser's `perspective` projects it for free. No matrix maths, no SVG overlay, no second render pass: `width` is the hypotenuse of the offset, `rotate()` is its angle, and the line foreshortens correctly as you fly past. A conversation is a constellation you see side-on, not a list you scroll down.
+
+Three states are legible on a card without reading it: **your own** echoes have a dashed border and a `you` chip; **echoes you have held** carry a permanent 1 px ring in their own colour plus `YOU GAVE 3.4s`; **replies** are physically smaller than what they answer, because an answer is not the same weight as the thing it answers.
 
 | Role | Value | Where it is used |
 |:---|:---|:---|
@@ -272,7 +336,7 @@ The strip on the right edge is not a scrollbar, because an infinite feed cannot 
 | Iris | `#8B7CFF` | per-echo glow |
 | Mint | `#4FFFC4` | per-echo glow |
 
-Each echo owns one hue and spends it in exactly four places: the sigil, the waveform, the caught glow, and its blip on the radar. Nothing else is coloured, which is why the glow reads as an object having a temperature rather than as decoration.
+Each echo owns one hue and spends it in exactly five places: the sigil, the waveform, the caught glow, its blip on the radar, and its tether if it has one. Nothing else is coloured, which is why the glow reads as an object having a temperature rather than as decoration. When you write, you pick your own hue from the same five — so your echoes belong to the void's palette instead of being marked out as an intruder in it.
 
 ## Performance
 
@@ -283,8 +347,10 @@ Each echo owns one hue and spends it in exactly four places: the sigil, the wave
 
 ## Known limits
 
-- No backend, no auth, no persistence — a caught echo is forgotten on reload. This is a frontend build.
+- **Single-player.** Your echoes and answers are real and persistent, but they are yours alone — there is no server, so nobody else can fly through them. Everything here is the interaction *model*, fully working, with the network stubbed out.
 - The corpus is 40 written echoes dealt in a fresh permutation each lap. The feed is infinite; the *writing* is not, and a determined pilot will see a text again 26.6 km down. Adding entries to `CORPUS` is the only change needed to push that further.
+- Resonance you give is stored against a generated echo's key. Because the feed is computed rather than fetched, those keys are stable forever — but they are stable only for *this* corpus. Reordering `CORPUS` would re-point old traces at new text.
+- `localStorage` is per-browser and per-origin, so traces do not follow you to another device, and a private window starts blank by design.
 - `prefers-reduced-motion` stops the nebula drift, halo breathing, waveform pulse, chevron and settle transitions, and freezes the dust loop. Camera motion stays, because it is the user's own input.
 
 ## License
