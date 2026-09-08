@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aether Depth Tunnel</title>
+<meta name="description" content="A social feed with a horizon. Scroll flies you forward through a 3D void; hold an echo to catch it." />
+<meta name="theme-color" content="#030305" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['"Familjen Grotesk"', 'Helvetica Neue', 'Arial', 'sans-serif'],
+          body: ['Manrope', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+        }
+      }
+    }
+  };
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js" crossorigin></script>
+
+<style>
+  :root {
+    color-scheme: dark;
+    --void: #030305;
+    --ink: #edeef4;
+    --ink-dim: #9b9bab;
+    --ink-mute: #66667a;
+    --hair: rgba(255, 255, 255, 0.08);
+    --hair-lit: rgba(255, 255, 255, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: var(--void);
+    color: var(--ink);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior: none;
+  }
+
+  #root { height: 100%; }
+  ::selection { background: rgba(94, 231, 255, 0.25); }
+
+  /* ══ the void ══════════════════════════════════════════════ */
+
+  .void {
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: var(--void);
+    touch-action: none;
+  }
+
+  .nebula {
+    position: absolute;
+    inset: -25%;
+    pointer-events: none;
+    background:
+      radial-gradient(38% 30% at 26% 32%, rgba(96, 78, 214, 0.17), transparent 68%),
+      radial-gradient(32% 26% at 76% 68%, rgba(0, 134, 168, 0.14), transparent 70%),
+      radial-gradient(46% 40% at 52% 50%, rgba(255, 77, 157, 0.06), transparent 74%);
+    animation: drift 78s ease-in-out infinite alternate;
+    transition: opacity 800ms ease;
+    will-change: transform;
+  }
+
+  @keyframes drift {
+    0%   { transform: translate3d(-2.5%, 1.5%, 0) scale(1.04); }
+    50%  { transform: translate3d(2%, -2.5%, 0) scale(1.12); }
+    100% { transform: translate3d(-1%, 2.5%, 0) scale(1.02); }
+  }
+
+  .field { position: absolute; inset: 0; pointer-events: none; transition: opacity 700ms ease, filter 700ms ease; }
+
+  .grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.055;
+    mix-blend-mode: screen;
+    z-index: 30;
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+    background: radial-gradient(62% 56% at 50% 50%, transparent 40%, rgba(3, 3, 5, 0.86) 100%);
+    transition: opacity 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* spotlight that blooms behind a caught echo */
+  .spotlight {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1100px;
+    height: 1100px;
+    margin: -550px 0 0 -550px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 900ms ease, transform 1100ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .spotlight.on { opacity: 1; transform: scale(1); }
+
+  /* ══ 3D stage ══════════════════════════════════════════════ */
+
+  .stage {
+    position: absolute;
+    inset: 0;
+    perspective: 1200px;
+    perspective-origin: 50% 50%;
+    transform-style: preserve-3d;
+    z-index: 10;
+  }
+
+  .stage-inner { position: absolute; inset: 0; transform-style: preserve-3d; }
+
+  .slot {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 452px;
+    max-width: 88vw;
+    transform-style: preserve-3d;
+  }
+
+  .slot.settling { transition: transform 820ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+  /* filter/opacity live on their own layer so the 3D transform above is never flattened */
+  .lens { transform-origin: 50% 50%; backface-visibility: hidden; }
+  .lens.settling { transition: filter 820ms cubic-bezier(0.16, 1, 0.3, 1), opacity 640ms ease-out; }
+
+  /* ══ echo card ═════════════════════════════════════════════ */
+
+  .card {
+    position: relative;
+    border-radius: 28px;
+    padding: 26px 28px 24px;
+    border: 1px solid var(--hair);
+    background: rgba(255, 255, 255, 0.03);
+    text-align: left;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 460ms ease, background-color 460ms ease,
+                box-shadow 640ms cubic-bezier(0.16, 1, 0.3, 1), transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card.near { -webkit-backdrop-filter: blur(36px) saturate(150%); backdrop-filter: blur(36px) saturate(150%); }
+  .card.live:hover { background: rgba(255, 255, 255, 0.055); border-color: var(--hair-lit); transform: scale(1.014); }
+  .card:focus-visible { box-shadow: 0 0 0 2px rgba(237, 238, 244, 0.8), 0 0 0 8px rgba(237, 238, 244, 0.1); }
+
+  /* specular hairline along the top edge */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    border-radius: 28px 28px 0 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3) 20%, rgba(255,255,255,0.52) 50%, rgba(255,255,255,0.3) 80%, transparent);
+    opacity: 0.75;
+    pointer-events: none;
+  }
+
+  .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+
+  .handle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+  }
+
+  .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-top: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .echo-text {
+    font-family: 'Familjen Grotesk', Helvetica Neue, Arial, sans-serif;
+    font-weight: 500;
+    font-size: 27px;
+    line-height: 1.26;
+    letter-spacing: -0.019em;
+    color: var(--ink);
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  /* waveform — an echo has a shape */
+  .wave { display: flex; align-items: flex-end; gap: 2px; height: 26px; margin-top: 22px; }
+  .wave i {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    border-radius: 1px;
+    transform-origin: bottom center;
+    transition: opacity 500ms ease;
+  }
+  .wave.playing i { animation: pulse 1500ms ease-in-out infinite; }
+
+  @keyframes pulse {
+    0%, 100% { transform: scaleY(1); }
+    50%      { transform: scaleY(0.42); }
+  }
+
+  .foot { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+
+  .stamp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    color: var(--ink-mute);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* caught drawer */
+  .drawer {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    overflow: hidden;
+    transition: grid-template-rows 660ms cubic-bezier(0.16, 1, 0.3, 1), opacity 440ms ease;
+  }
+  .drawer.open { grid-template-rows: 1fr; opacity: 1; }
+  .drawer > div { min-height: 0; }
+
+  .drawer-inner {
+    margin-top: 20px;
+    padding-top: 17px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .track { position: relative; flex: 1; height: 2px; background: rgba(255,255,255,0.09); overflow: hidden; }
+  .fill { position: absolute; inset: 0 auto 0 0; height: 100%; transform-origin: left center; transition: transform 950ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+  /* hold-to-catch ring */
+  .ring { position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%); pointer-events: none; }
+  .ring circle.arc { transform: rotate(-90deg); transform-origin: 50% 50%; stroke-dasharray: 88; stroke-dashoffset: 88; }
+  .ring.arming circle.arc { animation: arm 320ms linear forwards; }
+  @keyframes arm { to { stroke-dashoffset: 0; } }
+
+  /* halo around the caught echo */
+  .halo {
+    position: absolute;
+    inset: -1px;
+    border-radius: 28px;
+    pointer-events: none;
+    animation: breathe 3800ms ease-in-out infinite;
+  }
+  @keyframes breathe { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+  /* ══ masthead plate, sitting at 0 m inside the tunnel ══════ */
+
+  .masthead { text-align: center; width: 640px; max-width: 90vw; }
+
+  .masthead h1 {
+    font-family: 'Familjen Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(52px, 9vw, 104px);
+    letter-spacing: 0.14em;
+    line-height: 0.94;
+    margin: 0 0 0 0.14em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #ffffff 0%, #b9bdd6 62%, #6e7391 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 46px rgba(139, 124, 255, 0.32));
+  }
+
+  .rule-h { height: 1px; background: linear-gradient(90deg, transparent, var(--hair-lit) 30%, var(--hair-lit) 70%, transparent); }
+
+  /* ══ HUD ═══════════════════════════════════════════════════ */
+
+  .hud { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
+  .hud button { pointer-events: auto; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .readout {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-dim);
+  }
+  .readout b { color: var(--ink); font-weight: 500; }
+
+  .bracket { position: absolute; width: 20px; height: 20px; pointer-events: none; }
+  .bracket.tl { top: 20px; left: 20px; border-top: 1px solid var(--hair-lit); border-left: 1px solid var(--hair-lit); }
+  .bracket.tr { top: 20px; right: 20px; border-top: 1px solid var(--hair-lit); border-right: 1px solid var(--hair-lit); }
+  .bracket.bl { bottom: 20px; left: 20px; border-bottom: 1px solid var(--hair-lit); border-left: 1px solid var(--hair-lit); }
+  .bracket.br { bottom: 20px; right: 20px; border-bottom: 1px solid var(--hair-lit); border-right: 1px solid var(--hair-lit); }
+
+  .wordmark-sm {
+    font-family: 'Familjen Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.44em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  /* throttle */
+  .throttle { position: relative; width: 172px; height: 2px; background: rgba(255,255,255,0.1); overflow: hidden; }
+  .throttle i { position: absolute; inset: 0 auto 0 0; height: 100%; transform-origin: left center; }
+
+  /* depth rail — each tick is a real echo at its own zDepth */
+  .rail { position: absolute; right: 34px; top: 50%; transform: translateY(-50%); height: min(54vh, 440px); width: 40px; }
+  .rail-line { position: absolute; right: 9px; top: 0; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, rgba(255,255,255,0.15) 7%, rgba(255,255,255,0.15) 93%, transparent); }
+  .tick { position: absolute; right: 5px; width: 8px; height: 1px; transition: width 420ms ease, opacity 420ms ease, box-shadow 420ms ease; }
+  .tick.caught { width: 20px; }
+  .cam { position: absolute; right: 0; width: 26px; height: 1px; background: var(--ink); box-shadow: 0 0 11px rgba(237,238,244,0.75); }
+  .cam::after { content: ''; position: absolute; right: -1px; top: -2.5px; width: 5px; height: 5px; background: var(--ink); transform: rotate(45deg); }
+
+  .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    transition: opacity 700ms ease, transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--hair);
+    background: rgba(255, 255, 255, 0.035);
+    border-radius: 999px;
+    padding: 9px 17px;
+    cursor: pointer;
+    transition: color 280ms ease, border-color 280ms ease, background-color 280ms ease;
+  }
+  .pill:hover { color: var(--ink); border-color: var(--hair-lit); background: rgba(255,255,255,0.075); }
+  .pill:focus-visible { outline: 2px solid rgba(237,238,244,0.7); outline-offset: 3px; }
+
+  .panel {
+    border: 1px solid var(--hair);
+    background: rgba(255, 255, 255, 0.022);
+    -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+    border-radius: 14px;
+    padding: 13px 15px;
+  }
+
+  .horizon-plate { width: 560px; max-width: 90vw; text-align: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nebula, .halo, .wave.playing i { animation: none; }
+    .slot.settling, .lens.settling, .drawer { transition-duration: 1ms; }
+    .ring.arming circle.arc { animation-duration: 1ms; }
+  }
+
+  @media (max-width: 700px) {
+    .card { padding: 22px 20px 20px; border-radius: 22px; }
+    .echo-text { font-size: 21px; }
+    .rail { right: 16px; }
+    .masthead h1 { letter-spacing: 0.1em; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<noscript>
+  <div style="padding:48px;font-family:Manrope,sans-serif;color:#edeef4">
+    Aether is a real-time 3D interface and needs JavaScript enabled.
+  </div>
+</noscript>
+
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect, useCallback, useMemo } = React;
+
+/* ══════════════════════════════════════════════════════════════
+   1. MOCK DATA — 20 echoes suspended at fixed depths in the void
+   ══════════════════════════════════════════════════════════════ */
+
+const GLOW = {
+  cyan:  '#5EE7FF',
+  rose:  '#FF4D9D',
+  amber: '#FFB454',
+  iris:  '#8B7CFF',
+  mint:  '#4FFFC4'
+};
+
+// x / y are metres off the flight axis; z is absolute depth down the tunnel
+const ECHOES = [
+  { id: 1,  z: 1000,  x: -70,  y: -34,  c: GLOW.cyan,  author: 'sable.ng',     place: 'Lagos',      age: '4 m',  res: 0.34, text: 'I deleted the app that knew me best and my hands still find the shape of it in my pocket.' },
+  { id: 2,  z: 1560,  x: 214,  y: 92,   c: GLOW.iris,  author: 'oyinda',       place: 'Ibadan',     age: '11 m', res: 0.61, text: 'My grandmother measured a good day by how many people she fed. I measure mine in unread.' },
+  { id: 3,  z: 2080,  x: -244, y: 58,   c: GLOW.rose,  author: 'kirinwaves',   place: 'Osaka',      age: '26 m', res: 0.88, text: 'Nobody warns you that the algorithm learns your loneliness faster than your friends do.' },
+  { id: 4,  z: 2560,  x: 96,   y: -126, c: GLOW.mint,  author: 'quietfloor',   place: 'Tallinn',    age: '38 m', res: 0.22, text: 'There is a version of me that exists only at 2am and only for strangers.' },
+  { id: 5,  z: 3120,  x: -154, y: 132,  c: GLOW.amber, author: 'tanvi.raw',    place: 'Pune',       age: '52 m', res: 0.47, text: 'I miss being bored. Real boredom. The kind with a ceiling fan and no plan.' },
+  { id: 6,  z: 3680,  x: 250,  y: -72,  c: GLOW.cyan,  author: 'm.orozco',     place: 'Bogotá',     age: '1 h',  res: 0.72, text: 'We call it a feed because something is being fattened, and it is not us.' },
+  { id: 7,  z: 4160,  x: -84,  y: -146, c: GLOW.iris,  author: 'lowbeam',      place: 'Glasgow',    age: '2 h',  res: 0.15, text: 'Took the long way home just to have a thought nobody could reply to.' },
+  { id: 8,  z: 4720,  x: 174,  y: 114,  c: GLOW.mint,  author: 'aditi.k',      place: 'Kochi',      age: '2 h',  res: 0.55, text: 'Rain on a tin roof is the only content I have never once wanted to skip.' },
+  { id: 9,  z: 5280,  x: -262, y: -42,  c: GLOW.rose,  author: 'nine.volts',   place: 'Detroit',    age: '3 h',  res: 0.29, text: 'I have four thousand photographs of the sky and cannot remember a single sunset.' },
+  { id: 10, z: 5760,  x: 64,   y: 140,  c: GLOW.amber, author: 'reya',         place: 'Beirut',     age: '4 h',  res: 0.94, text: 'The scroll never ends because an ending would let you stand up.' },
+  { id: 11, z: 6320,  x: -192, y: -112, c: GLOW.cyan,  author: 'haltsign',     place: 'Rotterdam',  age: '5 h',  res: 0.18, text: 'First real silence in six years: a lift with no signal, forty seconds, eighth floor.' },
+  { id: 12, z: 6880,  x: 232,  y: 44,   c: GLOW.iris,  author: 'sofie.wren',   place: 'Malmö',      age: '7 h',  res: 0.66, text: 'I want to be known slowly. Chapter by chapter. Not in a grid of squares.' },
+  { id: 13, z: 7360,  x: -104, y: 124,  c: GLOW.rose,  author: 'dev.null.ish', place: 'Austin',     age: '9 h',  res: 0.41, text: 'Everyone I love is currently inside a rectangle and I hate it here.' },
+  { id: 14, z: 7920,  x: 146,  y: -132, c: GLOW.mint,  author: 'amara.t',      place: 'Nairobi',    age: '11 h', res: 0.78, text: 'Made tea, forgot it, made another. Grief is mostly small logistics.' },
+  { id: 15, z: 8480,  x: -234, y: -18,  c: GLOW.amber, author: 'p.mahesh',     place: 'Chennai',    age: '14 h', res: 0.36, text: 'My attention is the only thing I own outright and I keep handing it over for free.' },
+  { id: 16, z: 8960,  x: 84,   y: 132,  c: GLOW.cyan,  author: 'coilroom',     place: 'Bengaluru',  age: '17 h', res: 0.52, text: 'Somewhere in Bengaluru a man still repairs radios and does not know he is a monument.' },
+  { id: 17, z: 9520,  x: -164, y: 68,   c: GLOW.iris,  author: 'juno.b',       place: 'Lisbon',     age: '21 h', res: 0.24, text: 'Held my breath through the whole tunnel like I did at nine. Still works.' },
+  { id: 18, z: 10080, x: 204,  y: -104, c: GLOW.rose,  author: 'thewholeway',  place: 'Vancouver',  age: '1 d',  res: 0.83, text: 'If you have to hold a thought to hear it, maybe that was always the honest price.' },
+  { id: 19, z: 10560, x: -74,  y: -140, c: GLOW.mint,  author: 'sable.ng',     place: 'Lagos',      age: '1 d',  res: 0.31, text: 'The best conversation I had this year left no screenshots behind.' },
+  { id: 20, z: 11120, x: 124,  y: 112,  c: GLOW.amber, author: 'aether.zero',  place: 'nowhere',    age: '2 d',  res: 1.00, text: 'Whatever you chase forward is travelling away from you at exactly the same speed.' }
+];
+
+/* flight + optics constants */
+const MASTHEAD_Z  = 0;
+const HORIZON_Z   = 11960;
+const MIN_Z       = -300;
+const MAX_Z       = 11500;
+const CULL_BEHIND = -200;    // behind the camera
+const CULL_AHEAD  = 3000;    // too far away to matter
+const SWEET_NEAR  = 0;       // sharp band, near edge
+const SWEET_FAR   = 500;     // sharp band, far edge
+const FOCUS_Z     = 300;     // where a caught echo is held
+const FRICTION    = 0.928;
+const WHEEL_GAIN  = 0.6;
+const MAX_VEL     = 135;
+const HOLD_MS     = 320;     // intent required to catch
+const BASE_PERSP  = 1200;
+
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const clamp01 = v => clamp(v, 0, 1);
+const fmt = n => Math.round(n).toLocaleString('en-IN');
+
+/* depth optics, shared by every object in the tunnel */
+function optics(distance) {
+  const opacity = clamp01((CULL_AHEAD - distance) / 900) * clamp01((distance - CULL_BEHIND) / 200);
+  let blur = 0;
+  if (distance > SWEET_FAR) blur = Math.min(14, ((distance - SWEET_FAR) / 1500) * 10);
+  else if (distance < SWEET_NEAR) blur = clamp01(-distance / 200) * 8;
+  return { opacity, blur };
+}
+
+/* deterministic waveform for an echo — same shape every reload */
+function waveform(id, res) {
+  return Array.from({ length: 34 }, (_, i) => {
+    const a = Math.sin(i * 1.73 + id * 2.31) * 0.5 + 0.5;
+    const b = Math.sin(i * 0.51 + id * 1.07) * 0.5 + 0.5;
+    return 0.16 + (a * 0.58 + b * 0.42) * (0.42 + res * 0.58) * 0.88;
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   2. THE VOID — projected dust + a wireframe tunnel, on canvas
+   ══════════════════════════════════════════════════════════════ */
+
+function Field({ camRef, velRef }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const SPAN = 9000;     // dust field wraps every 9 km of depth
+    const FOCAL = 900;
+    const RING_GAP = 560;  // a tunnel ring every 560 m
+    const RING_R = 1150;   // ring radius in world units
+    const COUNT = window.innerWidth < 720 ? 160 : 300;
+
+    const motes = Array.from({ length: COUNT }, () => ({
+      x: (Math.random() - 0.5) * 5400,
+      y: (Math.random() - 0.5) * 3500,
+      z: Math.random() * SPAN,
+      w: 0.35 + Math.random() * 0.65
+    }));
+
+    let w = 0, h = 0, dpr = 1, raf = 0;
+
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = canvas.clientWidth;
+      h = canvas.clientHeight;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const draw = () => {
+      const cam = camRef.current;
+      const vel = velRef.current;
+      const cx = w / 2, cy = h / 2;
+      ctx.clearRect(0, 0, w, h);
+
+      /* --- wireframe tunnel: concentric rings receding down the z axis --- */
+      const first = Math.ceil((cam + 200) / RING_GAP) * RING_GAP;
+      for (let z = first; z < cam + 9200; z += RING_GAP) {
+        const d = z - cam;
+        const s = FOCAL / d;
+        const r = RING_R * s;
+        if (r < 6) continue;
+        const near = 1 - d / 9200;
+        const a = near * near * 0.2;
+        if (a < 0.004) continue;
+
+        ctx.strokeStyle = 'rgba(150, 166, 224, ' + a.toFixed(4) + ')';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let k = 0; k <= 6; k++) {
+          const ang = (k / 6) * Math.PI * 2 - Math.PI / 12;
+          const px = cx + Math.cos(ang) * r * 1.42;
+          const py = cy + Math.sin(ang) * r;
+          if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      }
+
+      /* --- longitudinal spokes, drawn once, converging on the vanishing point --- */
+      ctx.strokeStyle = 'rgba(150, 166, 224, 0.05)';
+      for (let k = 0; k < 6; k++) {
+        const ang = (k / 6) * Math.PI * 2 - Math.PI / 12;
+        const sNear = FOCAL / 400, sFar = FOCAL / 9200;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(ang) * RING_R * 1.42 * sNear, cy + Math.sin(ang) * RING_R * sNear);
+        ctx.lineTo(cx + Math.cos(ang) * RING_R * 1.42 * sFar, cy + Math.sin(ang) * RING_R * sFar);
+        ctx.stroke();
+      }
+
+      /* --- dust, smearing into streaks as velocity climbs --- */
+      ctx.lineCap = 'round';
+      for (let i = 0; i < motes.length; i++) {
+        const m = motes[i];
+        let d = (m.z - cam) % SPAN;
+        if (d < 0) d += SPAN;
+        if (d < 130) continue;
+
+        const s = FOCAL / d;
+        const px = cx + m.x * s;
+        const py = cy + m.y * s;
+        if (px < -40 || px > w + 40 || py < -40 || py > h + 40) continue;
+
+        const near = 1 - d / SPAN;
+        const alpha = clamp01(near * near * 0.85 + 0.04) * m.w;
+        const size = clamp(s * 1.9 * m.w, 0.35, 2.9);
+        const streak = Math.min(Math.abs(vel) * 0.55, 120) * s;
+
+        if (streak > 1.2) {
+          const s2 = FOCAL / Math.max(d - Math.sign(vel) * streak / s, 140);
+          ctx.strokeStyle = 'rgba(214, 226, 255, ' + (alpha * 0.72).toFixed(3) + ')';
+          ctx.lineWidth = size;
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(cx + m.x * s2, cy + m.y * s2);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = 'rgba(224, 232, 255, ' + alpha.toFixed(3) + ')';
+          ctx.beginPath();
+          ctx.arc(px, py, size, 0, 6.2832);
+          ctx.fill();
+        }
+      }
+
+      if (!reduced) raf = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+  }, [camRef, velRef]);
+
+  return <canvas ref={canvasRef} className="field" aria-hidden="true" />;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3. SIGIL — a generated mark, unique and stable per author
+   ══════════════════════════════════════════════════════════════ */
+
+function Sigil({ echo }) {
+  const rot = (echo.id * 47) % 360;
+  const arc = 20 + echo.res * 250;
+  const C = 2 * Math.PI * 11;
+  return (
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" style={{ flex: 'none' }}>
+      <circle cx="17" cy="17" r="15.5" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+      <circle
+        cx="17" cy="17" r="11" fill="none" stroke={echo.c} strokeWidth="1.5" strokeLinecap="round"
+        strokeDasharray={((arc / 360) * C).toFixed(2) + ' ' + C}
+        transform={'rotate(' + rot + ' 17 17)'}
+        opacity="0.9"
+      />
+      <circle cx="17" cy="17" r="3.4" fill={echo.c} opacity="0.28" />
+      <circle
+        cx={17 + Math.cos((rot * Math.PI) / 180) * 11}
+        cy={17 + Math.sin((rot * Math.PI) / 180) * 11}
+        r="1.8" fill={echo.c}
+      />
+    </svg>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   4. ECHO — depth optics and the catch mechanic
+   ══════════════════════════════════════════════════════════════ */
+
+function Echo({ echo, distance, isCaught, anyCaught, settling, arming, held, onHoldStart, onHoldEnd, onToggle }) {
+  const bars = useMemo(() => waveform(echo.id, echo.res), [echo.id, echo.res]);
+
+  if (distance < CULL_BEHIND || distance > CULL_AHEAD) return null;
+
+  let { opacity, blur } = optics(distance);
+  if (anyCaught && !isCaught) { opacity *= 0.09; blur += 9; }
+  if (isCaught) { opacity = 1; blur = 0; }
+
+  const near = distance < 1600;
+  const live = opacity > 0.35 && distance > -120 && !(anyCaught && !isCaught);
+  const xOff = isCaught ? 0 : echo.x;
+  const yOff = isCaught ? 0 : echo.y;
+
+  const shadow = isCaught
+    ? '0 0 0 1px ' + echo.c + '5c, 0 0 40px ' + echo.c + '4d, 0 0 130px ' + echo.c + '24, 0 46px 96px rgba(0,0,0,0.66)'
+    : '0 28px 74px rgba(0,0,0,0.52), 0 0 36px ' + echo.c + '10';
+
+  return (
+    <div
+      className={'slot' + (settling ? ' settling' : '')}
+      style={{
+        transform: 'translate(-50%, -50%) translate3d(' + xOff + 'px, ' + yOff + 'px, ' + (-distance) + 'px)',
+        zIndex: Math.round(12000 - distance)
+      }}
+    >
+      <div
+        className={'lens' + (settling ? ' settling' : '')}
+        style={{ filter: blur > 0.05 ? 'blur(' + blur.toFixed(2) + 'px)' : 'none', opacity }}
+      >
+        <div
+          role="button"
+          tabIndex={live ? 0 : -1}
+          aria-pressed={isCaught}
+          aria-label={'Echo by ' + echo.author + '. ' + echo.text + (isCaught ? ' Caught.' : ' Hold to catch.')}
+          className={'card' + (near ? ' near' : '') + (live ? ' live' : '')}
+          style={{
+            boxShadow: shadow,
+            borderColor: isCaught ? echo.c + '52' : undefined,
+            background: isCaught ? 'rgba(255,255,255,0.056)' : undefined,
+            cursor: live ? 'pointer' : 'default',
+            pointerEvents: live ? 'auto' : 'none'
+          }}
+          onPointerDown={e => { e.preventDefault(); onHoldStart(echo.id); }}
+          onPointerUp={() => onHoldEnd()}
+          onPointerLeave={() => onHoldEnd()}
+          onPointerCancel={() => onHoldEnd()}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(echo.id); } }}
+        >
+          {isCaught && (
+            <span className="halo" style={{ boxShadow: 'inset 0 0 1px ' + echo.c + '80, 0 0 30px ' + echo.c + '2e' }} />
+          )}
+
+          <div className="card-head">
+            <Sigil echo={echo} />
+            <div style={{ minWidth: 0 }}>
+              <div className="handle">{echo.author}</div>
+              <div className="sub">{echo.place} · {echo.age} ago · {fmt(echo.z)} m</div>
+            </div>
+            <span
+              className="sub"
+              style={{ marginLeft: 'auto', color: echo.c, letterSpacing: '0.13em', whiteSpace: 'nowrap' }}
+            >
+              {isCaught ? 'HELD ' + held : 'RES ' + Math.round(echo.res * 100)}
+            </span>
+          </div>
+
+          <p className="echo-text">{echo.text}</p>
+
+          <div className={'wave' + (isCaught ? ' playing' : '')} aria-hidden="true">
+            {bars.map((v, i) => (
+              <i
+                key={i}
+                style={{
+                  height: (v * 100).toFixed(1) + '%',
+                  background: echo.c,
+                  opacity: isCaught ? 0.28 + v * 0.62 : 0.1 + v * 0.2,
+                  animationDelay: (i * 44) + 'ms'
+                }}
+              />
+            ))}
+          </div>
+
+          <div className={'drawer' + (isCaught ? ' open' : '')} aria-hidden={!isCaught}>
+            <div>
+              <div className="drawer-inner">
+                <span className="stamp" style={{ color: echo.c, whiteSpace: 'nowrap' }}>
+                  RESONANCE {Math.round(echo.res * 100)}
+                </span>
+                <div className="track">
+                  <div
+                    className="fill"
+                    style={{
+                      background: 'linear-gradient(90deg, ' + echo.c + '00, ' + echo.c + ')',
+                      transform: 'scaleX(' + (isCaught ? echo.res : 0) + ')'
+                    }}
+                  />
+                </div>
+                <span className="stamp" style={{ whiteSpace: 'nowrap' }}>THE FEED IS NOT MOVING</span>
+              </div>
+            </div>
+          </div>
+
+          {arming && !isCaught && (
+            <svg className="ring arming" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+              <circle cx="15" cy="15" r="14" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
+              <circle className="arc" cx="15" cy="15" r="14" fill="none" stroke={echo.c} strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5. MASTHEAD — the title sits at 0 m and flies away behind you
+   ══════════════════════════════════════════════════════════════ */
+
+function Masthead({ distance, anyCaught }) {
+  if (distance < CULL_BEHIND || distance > CULL_AHEAD) return null;
+  let { opacity, blur } = optics(distance);
+  if (anyCaught) opacity *= 0.08;
+
+  return (
+    <div
+      className="slot"
+      style={{
+        width: 'auto',
+        transform: 'translate(-50%, -50%) translate3d(0, 0, ' + (-distance) + 'px)',
+        zIndex: Math.round(12000 - distance),
+        pointerEvents: 'none'
+      }}
+    >
+      <div
+        className="masthead"
+        style={{ opacity, filter: blur > 0.05 ? 'blur(' + blur.toFixed(2) + 'px)' : 'none' }}
+      >
+        <div className="eyebrow" style={{ letterSpacing: '0.36em', marginBottom: 22 }}>A feed with a horizon</div>
+        <h1>Aether</h1>
+        <div className="rule-h" style={{ margin: '26px auto', width: '78%' }} />
+        <p
+          style={{
+            fontFamily: '"Familjen Grotesk", sans-serif', fontWeight: 400, fontSize: 19,
+            lineHeight: 1.5, letterSpacing: '-0.008em', color: 'var(--ink-dim)',
+            margin: '0 auto', maxWidth: 430, textWrap: 'balance'
+          }}
+        >
+          The timeline runs forward, not down. Twenty thoughts are suspended
+          ahead of you across 11.9&nbsp;km of nothing. Fly.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   6. HORIZON — the feed ends. That is the whole argument.
+   ══════════════════════════════════════════════════════════════ */
+
+function Horizon({ distance, anyCaught, onReturn }) {
+  if (distance < CULL_BEHIND || distance > CULL_AHEAD) return null;
+  let opacity = clamp01((CULL_AHEAD - distance) / 1400) * clamp01((distance - CULL_BEHIND) / 200);
+  if (anyCaught) opacity *= 0.08;
+  const blur = distance > SWEET_FAR ? Math.min(12, ((distance - SWEET_FAR) / 1500) * 9) : 0;
+
+  return (
+    <div
+      className="slot"
+      style={{ width: 'auto', transform: 'translate(-50%, -50%) translate3d(0, 0, ' + (-distance) + 'px)', zIndex: 1 }}
+    >
+      <div
+        className="horizon-plate"
+        style={{
+          opacity,
+          filter: blur > 0.05 ? 'blur(' + blur.toFixed(2) + 'px)' : 'none',
+          pointerEvents: opacity > 0.7 ? 'auto' : 'none'
+        }}
+      >
+        <div className="eyebrow" style={{ letterSpacing: '0.34em' }}>End of tunnel</div>
+        <div className="rule-h" style={{ margin: '24px auto', width: '60%' }} />
+        <p
+          style={{
+            fontFamily: '"Familjen Grotesk", sans-serif', fontWeight: 500, fontSize: 32,
+            lineHeight: 1.22, letterSpacing: '-0.022em', margin: 0, textWrap: 'balance'
+          }}
+        >
+          Twenty echoes. That was all of them.
+        </p>
+        <p className="readout" style={{ marginTop: 18, lineHeight: 1.75 }}>
+          There is nothing further ahead. No refresh, no next page.<br />
+          Turn around, or close the tab and go outside.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 26 }}>
+          <button className="pill" onClick={onReturn}>Return to 0 m</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7. AUDIO — a velocity-tracking drone, built from oscillators
+   ══════════════════════════════════════════════════════════════ */
+
+function useAudio(velRef) {
+  const nodes = useRef(null);
+  const [on, setOn] = useState(false);
+
+  const toggle = useCallback(() => {
+    if (!on) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!nodes.current) {
+        const ctx = new AC();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 320;
+        gain.gain.value = 0;
+        const a = ctx.createOscillator(), b = ctx.createOscillator();
+        a.type = 'sine'; a.frequency.value = 55;
+        b.type = 'triangle'; b.frequency.value = 82.5;
+        a.connect(filter); b.connect(filter);
+        filter.connect(gain).connect(ctx.destination);
+        a.start(); b.start();
+        nodes.current = { ctx, gain, filter };
+      }
+      const { ctx, gain } = nodes.current;
+      ctx.resume();
+      gain.gain.cancelScheduledValues(ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 1.2);
+      setOn(true);
+    } else {
+      const { ctx, gain } = nodes.current;
+      gain.gain.cancelScheduledValues(ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+      setOn(false);
+    }
+  }, [on]);
+
+  // drone brightens with speed
+  useEffect(() => {
+    if (!on) return;
+    const iv = setInterval(() => {
+      const n = nodes.current;
+      if (!n) return;
+      const target = 300 + Math.min(Math.abs(velRef.current) / MAX_VEL, 1) * 1500;
+      n.filter.frequency.setTargetAtTime(target, n.ctx.currentTime, 0.25);
+    }, 120);
+    return () => clearInterval(iv);
+  }, [on, velRef]);
+
+  const chime = useCallback(hz => {
+    const n = nodes.current;
+    if (!n || !on) return;
+    const { ctx } = n;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.value = hz;
+    g.gain.value = 0;
+    g.gain.linearRampToValueAtTime(0.09, ctx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.6);
+    o.connect(g).connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + 1.7);
+  }, [on]);
+
+  return { on, toggle, chime };
+}
+
+/* ══════════════════════════════════════════════════════════════
+   8. APP — flight physics, HUD, depth rail
+   ══════════════════════════════════════════════════════════════ */
+
+function App() {
+  const posRef = useRef(0);
+  const velRef = useRef(0);
+  const [pos, setPos] = useState(0);
+  const [vel, setVel] = useState(0);
+  const [caughtId, setCaughtId] = useState(null);
+  const [armingId, setArmingId] = useState(null);
+  const [settling, setSettling] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const [heldMs, setHeldMs] = useState(0);
+
+  const caughtRef = useRef(null);
+  const holdTimer = useRef(null);
+  const settleTimer = useRef(null);
+  const stageRef = useRef(null);
+  const perspRef = useRef(null);
+  const tilt = useRef({ tx: 0, ty: 0, x: 0, y: 0 });
+
+  caughtRef.current = caughtId;
+  const audio = useAudio(velRef);
+
+  /* --- flight loop: the wheel adds velocity, friction bleeds it off --- */
+  useEffect(() => {
+    let raf;
+    const tick = () => {
+      if (caughtRef.current === null) {
+        velRef.current *= FRICTION;
+        if (Math.abs(velRef.current) < 0.04) velRef.current = 0;
+        let next = posRef.current + velRef.current;
+        if (next <= MIN_Z) { next = MIN_Z; velRef.current = 0; }
+        if (next >= MAX_Z) { next = MAX_Z; velRef.current = 0; }
+        posRef.current = next;
+      } else {
+        velRef.current *= 0.6;   // catching freezes forward momentum
+      }
+
+      if (Math.abs(posRef.current - pos) > 0.05) setPos(posRef.current);
+      if (Math.abs(velRef.current - vel) > 0.08) setVel(velRef.current);
+
+      // the void leans with the pointer, and rolls slightly with speed
+      const t = tilt.current;
+      t.x += (t.tx - t.x) * 0.055;
+      t.y += (t.ty - t.y) * 0.055;
+      const roll = clamp(velRef.current * 0.012, -1.6, 1.6);
+      if (stageRef.current) {
+        stageRef.current.style.transform =
+          'rotateY(' + t.x.toFixed(3) + 'deg) rotateX(' + t.y.toFixed(3) + 'deg) rotateZ(' + roll.toFixed(3) + 'deg)';
+      }
+      // warp: the field of view compresses as speed climbs
+      if (perspRef.current) {
+        const p = BASE_PERSP - Math.min(Math.abs(velRef.current), MAX_VEL) * 1.6;
+        perspRef.current.style.perspective = p.toFixed(0) + 'px';
+      }
+
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [pos, vel]);
+
+  /* --- held timer, only while something is caught --- */
+  useEffect(() => {
+    if (caughtId === null) { setHeldMs(0); return; }
+    const t0 = Date.now();
+    const iv = setInterval(() => setHeldMs(Date.now() - t0), 200);
+    return () => clearInterval(iv);
+  }, [caughtId]);
+
+  const nudge = useCallback(delta => {
+    velRef.current = clamp(velRef.current + delta, -MAX_VEL, MAX_VEL);
+    setTouched(true);
+  }, []);
+
+  const onWheel = useCallback(e => {
+    if (caughtRef.current !== null) return;
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
+    nudge(e.deltaY * unit * WHEEL_GAIN);
+  }, [nudge]);
+
+  const beginSettle = useCallback(() => {
+    setSettling(true);
+    clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => setSettling(false), 860);
+  }, []);
+
+  const release = useCallback(() => {
+    beginSettle();
+    setCaughtId(null);
+    audio.chime(392);
+  }, [beginSettle, audio]);
+
+  const catchEcho = useCallback(id => {
+    beginSettle();
+    velRef.current = 0;
+    setCaughtId(id);
+    setTouched(true);
+    audio.chime(528);
+  }, [beginSettle, audio]);
+
+  const onHoldStart = useCallback(id => {
+    if (caughtRef.current === id) { release(); return; }
+    if (caughtRef.current !== null) return;
+    setArmingId(id);
+    clearTimeout(holdTimer.current);
+    holdTimer.current = setTimeout(() => { setArmingId(null); catchEcho(id); }, HOLD_MS);
+  }, [catchEcho, release]);
+
+  const onHoldEnd = useCallback(() => {
+    clearTimeout(holdTimer.current);
+    setArmingId(null);
+  }, []);
+
+  const onToggle = useCallback(id => {
+    if (caughtRef.current === id) release(); else catchEcho(id);
+  }, [catchEcho, release]);
+
+  const returnToStart = useCallback(() => {
+    beginSettle();
+    velRef.current = -MAX_VEL;
+  }, [beginSettle]);
+
+  /* --- keyboard flight --- */
+  useEffect(() => {
+    const onKey = e => {
+      if (e.key === 'Escape') { if (caughtRef.current !== null) release(); return; }
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
+      if (caughtRef.current !== null) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); nudge(46); }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); nudge(-46); }
+      else if (e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); nudge(150); }
+      else if (e.key === 'PageUp') { e.preventDefault(); nudge(-150); }
+      else if (e.key === 'Home') { e.preventDefault(); velRef.current = 0; posRef.current = 0; setPos(0); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [nudge, release]);
+
+  /* --- touch: drag to fly --- */
+  const touchY = useRef(null);
+  const onTouchStart = e => { touchY.current = e.touches[0].clientY; };
+  const onTouchMove = e => {
+    if (touchY.current === null || caughtRef.current !== null) return;
+    const y = e.touches[0].clientY;
+    nudge((touchY.current - y) * 1.7);
+    touchY.current = y;
+  };
+  const onTouchEnd = () => { touchY.current = null; };
+
+  const onPointerMove = e => {
+    const t = tilt.current;
+    t.tx = ((e.clientX / window.innerWidth) - 0.5) * 5;
+    t.ty = -((e.clientY / window.innerHeight) - 0.5) * 4;
+  };
+
+  const caught = caughtId === null ? null : ECHOES.find(x => x.id === caughtId);
+  const inRange = ECHOES.filter(e => { const d = e.z - pos; return d >= CULL_BEHIND && d <= CULL_AHEAD; }).length;
+  const passed = ECHOES.filter(e => e.z - pos < CULL_BEHIND).length;
+  const nextUp = ECHOES.find(e => e.z - pos > SWEET_FAR);
+  // z units are metres and the loop runs at 60 fps, so m/frame → km/s
+  const speed = (Math.abs(vel) * 60) / 1000;
+  const held = Math.floor(heldMs / 1000);
+  const heldLabel = Math.floor(held / 60) + ':' + String(held % 60).padStart(2, '0');
+
+  return (
+    <main
+      className="void"
+      onWheel={onWheel}
+      onPointerMove={onPointerMove}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onPointerDown={e => { if (e.target === e.currentTarget && caughtId !== null) release(); }}
+    >
+      <div className="nebula" aria-hidden="true" style={{ opacity: caughtId ? 0.34 : 1 }} />
+      <Field camRef={posRef} velRef={velRef} />
+
+      <div
+        className={'spotlight' + (caught ? ' on' : '')}
+        aria-hidden="true"
+        style={
+          caught
+            ? { background: 'radial-gradient(circle, ' + caught.c + '26 0%, ' + caught.c + '0a 36%, transparent 68%)' }
+            : undefined
+        }
+      />
+
+      <div className="stage" ref={perspRef}>
+        <div className="stage-inner" ref={stageRef}>
+          <Masthead distance={MASTHEAD_Z - pos} anyCaught={caughtId !== null} />
+          {ECHOES.map(echo => (
+            <Echo
+              key={echo.id}
+              echo={echo}
+              distance={caughtId === echo.id ? FOCUS_Z : echo.z - pos}
+              isCaught={caughtId === echo.id}
+              anyCaught={caughtId !== null}
+              settling={settling}
+              arming={armingId === echo.id}
+              held={heldLabel}
+              onHoldStart={onHoldStart}
+              onHoldEnd={onHoldEnd}
+              onToggle={onToggle}
+            />
+          ))}
+          <Horizon distance={HORIZON_Z - pos} anyCaught={caughtId !== null} onReturn={returnToStart} />
+        </div>
+      </div>
+
+      <div className="vignette" aria-hidden="true" style={{ opacity: caughtId ? 1.7 : 1 }} />
+
+      {/* film grain */}
+      <svg className="grain" aria-hidden="true" width="100%" height="100%">
+        <filter id="grain-noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain-noise)" />
+      </svg>
+
+      {/* ══════════════════ HUD ══════════════════ */}
+      <div className="hud">
+        <span className="bracket tl" /><span className="bracket tr" />
+        <span className="bracket bl" /><span className="bracket br" />
+
+        <div style={{ position: 'absolute', top: 42, left: 46 }}>
+          <div className="wordmark-sm">Aether</div>
+          <div className="eyebrow" style={{ marginTop: 8 }}>Z-axis social · {ECHOES.length} echoes · 11.9 km</div>
+        </div>
+
+        <div style={{ position: 'absolute', top: 42, right: 46, textAlign: 'right', display: 'grid', gap: 6 }}>
+          <div className="readout">DEPTH <b>{fmt(Math.max(0, pos))}</b> m</div>
+          <div className="readout">VELOCITY <b>{speed.toFixed(2)}</b> km/s</div>
+          <div className="readout">IN RANGE <b>{inRange}</b> · PASSED <b>{passed}</b></div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+            <div className="throttle" aria-hidden="true">
+              <i
+                style={{
+                  transform: 'scaleX(' + clamp01(Math.abs(vel) / MAX_VEL) + ')',
+                  background: 'linear-gradient(90deg, #8B7CFF, #5EE7FF)'
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* depth rail: every tick is a real echo at its own zDepth */}
+        <div className="rail" aria-hidden="true">
+          <div className="rail-line" />
+          {ECHOES.map(e => {
+            const isC = caughtId === e.id;
+            const behindCam = e.z < pos;
+            return (
+              <div
+                key={e.id}
+                className={'tick' + (isC ? ' caught' : '')}
+                style={{
+                  top: ((e.z / HORIZON_Z) * 100) + '%',
+                  background: isC ? e.c : behindCam ? 'rgba(255,255,255,0.14)' : e.c + '7a',
+                  boxShadow: isC ? '0 0 11px ' + e.c : 'none',
+                  opacity: caughtId && !isC ? 0.28 : 1
+                }}
+              />
+            );
+          })}
+          <div className="cam" style={{ top: clamp((pos / HORIZON_Z) * 100, 0, 100) + '%' }} />
+          <div className="eyebrow" style={{ position: 'absolute', top: -22, right: 0, fontSize: 8.5 }}>0.0 km</div>
+          <div className="eyebrow" style={{ position: 'absolute', bottom: -22, right: 0, fontSize: 8.5 }}>11.9 km</div>
+        </div>
+
+        {/* instrument panel: what is coming, or what you are holding */}
+        <div style={{ position: 'absolute', bottom: 44, left: 46, width: 246 }}>
+          <div className="panel">
+            {caught ? (
+              <div>
+                <div className="eyebrow" style={{ color: caught.c }}>Caught · held {heldLabel}</div>
+                <div className="readout" style={{ marginTop: 9, lineHeight: 1.6 }}>
+                  <b>{caught.author}</b><br />{caught.place} · resonance {Math.round(caught.res * 100)}
+                </div>
+              </div>
+            ) : nextUp ? (
+              <div>
+                <div className="eyebrow">Next echo ahead</div>
+                <div className="readout" style={{ marginTop: 9, lineHeight: 1.6 }}>
+                  <b>{fmt(nextUp.z - pos)}</b> m · {nextUp.author}<br />
+                  <span style={{ color: 'var(--ink-mute)' }}>{nextUp.place}</span>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="eyebrow">Horizon ahead</div>
+                <div className="readout" style={{ marginTop: 9, lineHeight: 1.6 }}>
+                  <b>{fmt(Math.max(0, HORIZON_Z - pos))}</b> m<br />
+                  <span style={{ color: 'var(--ink-mute)' }}>then nothing</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="eyebrow" style={{ marginTop: 14, lineHeight: 1.9, letterSpacing: '0.13em' }}>
+            You cannot like an echo.<br />You can only hold it still.
+          </div>
+        </div>
+
+        <div style={{ position: 'absolute', bottom: 44, right: 46, display: 'flex', gap: 10 }}>
+          <button
+            className="pill"
+            onClick={audio.toggle}
+            aria-pressed={audio.on}
+            style={audio.on ? { color: 'var(--ink)', borderColor: 'var(--hair-lit)' } : undefined}
+          >
+            {audio.on ? '◼ Drone on' : '▶ Drone'}
+          </button>
+          {caught && <button className="pill" onClick={release}>Release · Esc</button>}
+        </div>
+
+        <div style={{ position: 'absolute', bottom: 46, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+          <div
+            className="hint"
+            style={{
+              opacity: caught ? 0 : touched ? 0.4 : 1,
+              transform: touched ? 'translateY(4px)' : 'none'
+            }}
+          >
+            Scroll to fly forward — hold an echo to catch it
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+window.__AETHER_UP = true;
+</script>
+
+<script>
+  /* Safety net: if the browser fired DOMContentLoaded before Babel attached its
+     listener, transform the JSX by hand. Guarded so it can never mount twice. */
+  window.addEventListener('load', function () {
+    if (!window.__AETHER_UP && window.Babel && window.Babel.transformScriptTags) {
+      window.Babel.transformScriptTags();
+    }
+  });
+</script>
+</body>
+</html>
