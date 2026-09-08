@@ -1,35 +1,37 @@
-# Aether
+# Dwell
 
-**A social network where attention is the only currency, and it is measured in seconds.** The timeline runs forward on the Z axis instead of down the Y axis, the void never ends, and you cannot like anything — you can only hold it still.
+### You cannot like a thought. You can only stay with it.
 
-[![Live](https://img.shields.io/badge/live-navyashreens.github.io%2Faether-5EE7FF?style=flat-square)](https://navyashreens.github.io/aether/)
+**Dwell reimagines the like.** Engagement here is not a tap but a length of time: you hold a thought still, and it keeps the seconds you gave it.
+
+[![Live](https://img.shields.io/badge/live-navyashreens.github.io%2Fdwell-5EE7FF?style=flat-square)](https://navyashreens.github.io/dwell/)
 [![Build](https://img.shields.io/badge/build_step-none-8B7CFF?style=flat-square)](#how-to-run)
 [![Files](https://img.shields.io/badge/source_files-1-FFB454?style=flat-square)](index.html)
 [![Mobile](https://img.shields.io/badge/works_on-phones-4FFFC4?style=flat-square)](#on-a-phone)
 [![License](https://img.shields.io/badge/license-MIT-66667A?style=flat-square)](LICENSE)
 
-**→ [navyashreens.github.io/aether](https://navyashreens.github.io/aether/)**
+**→ [navyashreens.github.io/dwell](https://navyashreens.github.io/dwell/)**
 
 ---
 
-## The problem is the axis, not the length
+## The name is the argument
 
-The infinite vertical scroll is not a feature that got out of hand. It is a mechanism with one job: never let you arrive. And because continuing costs nothing, engaging costs nothing either — the double-tap is so cheap that it means nothing, and a thought scrolls past having been "liked" by someone who never read it.
+**Dwell time** is the metric every platform already runs on: how many seconds a post held your eyes. It is measured on you, and it is sold to somebody else.
 
-Aether keeps the infinity and removes both of those.
+Dwell hands that number back. Here the seconds are the currency, you spend them deliberately, and the ledger belongs to you.
+
+The reason a like is worthless is that it is cheap. One tap, forty milliseconds, and a thought can be approved by someone who never read it. So there is no like button anywhere in this product. To give a thought anything, you press and **hold** it — your forward momentum stops, the world dims around it, and the resonance you transfer is literally the seconds you spent. Let go before one second and the interface tells you, plainly, that you gave nothing.
 
 You are a camera in a black void, facing forward. Thoughts — *echoes* — hang at fixed depths ahead of you, generated on the fly, forever. Your wheel (or your thumb) is a throttle, not a scrollbar: it adds velocity, friction takes it away, and you coast. Echoes rush toward the lens, come into focus, and fall away behind you.
 
-Two things change the deal:
-
 **Depth is the timeline.** An echo's z position *is* its age. 1 km down is eight minutes ago; 10 km is five hours; 50 km is three days; 200 km is most of a month. Flying forward is flying backwards through time, which is what a feed actually is once you scroll past the first screen.
 
-**Every 5 km the void issues a depth marker.** Not an ending — a statement of account:
+**Every 5 km the void issues a depth marker** — not an ending, a statement of account, written from your own live numbers:
 
-> **25.0 km** — 41 thoughts have passed you. Name one.
-> `AIRBORNE 3:12 · 41 PASSED`
+> **25.0 km** — 206 thoughts have passed you. You held 4.
+> `AIRBORNE 9:12 · 206 PASSED · 4 HELD`
 
-That is the argument, and it is sharper than a wall. The feed is infinite; it just refuses to be quiet about it. No real feed will ever tell you how long you have been in it or how much went past unread. This one does, in monospace, five times over every 25 km.
+The feed is infinite; it just refuses to be quiet about the cost. No real feed will ever tell you how long you have been inside it, how much went past unread, or how many seconds you actually gave away. This one does, in monospace, five times over every 25 km.
 
 ---
 
@@ -37,7 +39,7 @@ That is the argument, and it is sharper than a wall. The feed is infinite; it ju
 
 The 3D tunnel is the *setting*. The point is what social actions become when the medium changes. Every primitive here is rebuilt from one rule: **engagement costs time, and the interface bills you for it.**
 
-| Conventional social | Aether | Why it changes the behaviour |
+| Conventional social | Dwell | Why it changes the behaviour |
 |:---|:---|:---|
 | **Like** — a tap, costs nothing, means nothing | **Resonance is the seconds you held it.** Hold under 1 s and you gave *nothing* — the toast says so | You cannot approve of something you did not read. The cost is time, which is finite and cannot be faked |
 | **Post** to the top of a timeline | **File a thought at your current depth.** Depth is time, so you choose *when* it lives, not where it queues | Your thought is a place in the void others fly through, not an item that decays out of a ranking |
@@ -281,14 +283,14 @@ Deliberately, aggressively small. **One file, no build step, no `node_modules`, 
 
 That is the whole procedure. It works from `file://` — no server, no `npm install`, no build.
 
-Or open the hosted copy: **[navyashreens.github.io/aether](https://navyashreens.github.io/aether/)**
+Or open the hosted copy: **[navyashreens.github.io/dwell](https://navyashreens.github.io/dwell/)**
 
 <sub>Needs a modern browser for `backdrop-filter` and `preserve-3d` — Chrome 76+, Safari 15.4+, Firefox 103+. Best on a trackpad, a free-spinning wheel, or a thumb.</sub>
 
 ## Repository layout
 
 ```
-aether/
+dwell/
 ├── index.html     the entire application
 │   ├── <head>     CDN pins, Google Fonts, ~520 lines of CSS incl. 3 mobile breakpoints
 │   └── <script type="text/babel">

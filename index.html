@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
-<title>Aether Depth Tunnel</title>
-<meta name="description" content="An endless feed on the Z axis. Scroll or swipe to fly forward through a 3D void; hold an echo to catch it." />
+<title>Dwell</title>
+<meta name="description" content="A social feed with no like button. Fly forward through an endless void and hold a thought still — the resonance you give is the seconds you gave it." />
 <meta name="theme-color" content="#030305" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -680,7 +680,7 @@
 <div id="root"></div>
 <noscript>
   <div style="padding:48px;font-family:Manrope,sans-serif;color:#edeef4">
-    Aether is a real-time 3D interface and needs JavaScript enabled.
+    Dwell is a real-time 3D interface and needs JavaScript enabled.
   </div>
 </noscript>
 
@@ -713,7 +713,7 @@ const CORPUS = [
   { author: 'juno.b',       place: 'Lisbon',    text: 'Held my breath through the whole tunnel like I did at nine. Still works.' },
   { author: 'thewholeway',  place: 'Vancouver', text: 'If you have to hold a thought to hear it, maybe that was always the honest price.' },
   { author: 'mirrorless',   place: 'Seoul',     text: 'The best conversation I had this year left no screenshots behind.' },
-  { author: 'aether.zero',  place: 'nowhere',   text: 'Whatever you chase forward is travelling away from you at exactly the same speed.' },
+  { author: 'dwell.zero',   place: 'nowhere',   text: 'Whatever you chase forward is travelling away from you at exactly the same speed.' },
   { author: 'v.okonkwo',    place: 'Enugu',     text: 'Nine hours of screen time and not one thing I could describe to my mother.' },
   { author: 'slowbus',      place: 'Bristol',   text: 'The bus was late and for twenty minutes I was a person again.' },
   { author: 'thumbroute',   place: 'Manila',    text: 'I know the shape of my thumb’s route better than my own street.' },
@@ -838,7 +838,7 @@ function nearMarker(z) {
    to localStorage so a demo survives a reload.                  */
 
 const MAX_TEXT = 140;
-const STORE_KEY = 'aether.traces.v2';
+const STORE_KEY = 'dwell.traces.v1';
 const BLANK = { handle: '', given: {}, mine: [], replies: {}, stats: { held: 0, seconds: 0, left: 0, tethered: 0 } };
 
 function loadTraces() {
@@ -1244,9 +1244,9 @@ function Masthead({ distance, anyCaught, vp }) {
     >
       <div className="plate masthead" style={{ opacity, filter: blur > 0.05 ? 'blur(' + blur.toFixed(2) + 'px)' : 'none' }}>
         <div className="eyebrow" style={{ letterSpacing: '0.36em', marginBottom: vp.compact ? 14 : 22 }}>
-          An endless feed, honestly labelled
+          Attention, measured in seconds
         </div>
-        <h1>Aether</h1>
+        <h1>Dwell</h1>
         <div className="rule-h" style={{ margin: (vp.compact ? '18px' : '26px') + ' auto', width: '78%' }} />
         <p
           style={{
@@ -1255,9 +1255,9 @@ function Masthead({ distance, anyCaught, vp }) {
             color: 'var(--ink-dim)', margin: '0 auto', maxWidth: 430, textWrap: 'balance'
           }}
         >
-          The timeline runs forward, not down. Thoughts hang ahead of you in the
-          dark and get older the deeper you fly. It does not end — so it keeps
-          the receipt instead.
+          You cannot like a thought here. You can only stay with it — and
+          what you give is the seconds you spend. The timeline runs forward,
+          not down, and depth is time.
         </p>
       </div>
     </div>
@@ -1975,9 +1975,9 @@ function App() {
         <span className="bracket bl" /><span className="bracket br" />
 
         <div className="hud-tl">
-          <div className="wordmark-sm">Aether</div>
+          <div className="wordmark-sm">Dwell</div>
           <div className="eyebrow" style={{ marginTop: 7 }}>
-            {vp.compact ? 'Z-axis social' : 'Z-axis social · the feed does not end'}
+            {vp.compact ? 'Z-axis social' : 'Z-axis social · attention costs seconds'}
           </div>
         </div>
 
@@ -2056,7 +2056,7 @@ function App() {
           </div>
           {!vp.compact && (
             <div className="eyebrow" style={{ marginTop: 14, lineHeight: 1.9, letterSpacing: '0.13em' }}>
-              You cannot like an echo.<br />You can only hold it still.
+              You cannot like a thought.<br />You can only stay with it.
             </div>
           )}
         </div>
@@ -2127,14 +2127,14 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-window.__AETHER_UP = true;
+window.__DWELL_UP = true;
 </script>
 
 <script>
   /* Safety net: if the browser fired DOMContentLoaded before Babel attached its
      listener, transform the JSX by hand. Guarded so it can never mount twice. */
   window.addEventListener('load', function () {
-    if (!window.__AETHER_UP && window.Babel && window.Babel.transformScriptTags) {
+    if (!window.__DWELL_UP && window.Babel && window.Babel.transformScriptTags) {
       window.Babel.transformScriptTags();
     }
   });
