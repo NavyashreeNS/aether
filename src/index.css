@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --bg-primary: #030305;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+}
+
+/* Theme Variances */
+html.theme-void {
+  --bg-primary: #030305;
+}
+
+html.theme-midnight {
+  --bg-primary: #0a0c1a;
+  background-color: #0a0c1a !important;
+}
+
+html.theme-cyberpunk {
+  --bg-primary: #070d18;
+  background-color: #070d18 !important;
+}
+
+html.theme-paper {
+  color-scheme: light;
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --border-card: rgba(0, 0, 0, 0.08);
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
+  background-color: #f8fafc !important;
+}
+
+html.theme-paper body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.theme-paper .bg-slate-900,
+html.theme-paper .bg-slate-950 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-paper .text-white,
+html.theme-paper .text-slate-100,
+html.theme-paper .text-slate-200 {
+  color: #0f172a !important;
+}
+
+html.theme-paper .text-slate-300,
+html.theme-paper .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.theme-paper .border-white\/10,
+html.theme-paper .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html.theme-paper .bg-white\/\[0\.02\],
+html.theme-paper .bg-white\/\[0\.03\],
+html.theme-paper .bg-white\/\[0\.04\],
+html.theme-paper .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Accessibility: Focus visible outline */
+*:focus-visible {
+  outline: 2px solid #5ee7ff;
+  outline-offset: 2px;
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
